@@ -1,10 +1,11 @@
 const Pool = require('pg').Pool
+require('dotenv').config()
 
 const pool = new Pool({
-	user: 'admin',
-	host: 'localhost',
-	database: 'gameoflife',
-	port: 5432, 
+	user: process.env.USER_ADMIN,
+	host: process.env.HOST,
+	database: process.env.DATABASE,
+	port: process.env.PORT, 
 })
 
 const createBoard = (req, res) => {
