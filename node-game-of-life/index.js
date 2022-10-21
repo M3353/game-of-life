@@ -2,10 +2,12 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const admin = require('./admin-queries')
 const player = require('./player-queries')
+const middleware = require('./middleware')
 
 const app = express()
 const port = 5431
 
+// middleware
 app.use(bodyParser.json())
 app.use(
 	bodyParser.urlencoded({
@@ -13,16 +15,15 @@ app.use(
 	})
 )
 
+// queries
 app.get('/', (req, res) => {
 	res.json({ info: 'Node.js, Express, and Postgres API' })
 })
 app.get('/boards', player.getBoards)
+app.get('/boards/:id', player.getBoardById)
 app.put('/boards/:id', player.updateBoard)
-//app.get('/boards/admin/', (req, res) => {
-//	res.json({ info: 'Admin Api for creating  boards' })
-//})
-app.put('/admin/:id', admin.createBoard)
-// app.delete('/boards/admin/:id', admin.deleteBoard)
+app.post('/admin/:id', middleware.validateBoard, admin.createBoard)
+app.delete('/admin/:id', admin.deleteBoard)
 
 app.listen(port,  () => {
 	console.log(`App running on port ${port}.`)

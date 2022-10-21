@@ -18,12 +18,11 @@ const getBoards = (req, res) => {
 
 const getBoardById = (req, res) => {
 	const id = parseInt(req.params.id)
-
 	pool.query('SELECT * FROM boards WHERE id = $1', [id], (err, results) => {
 		if (err) {
 			throw er
 		}
-		res.status(200).json(results.row)
+		res.status(200).json(results.rows)
 	})
 } 
 

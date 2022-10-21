@@ -16,7 +16,7 @@ const boardSchema = Joi.object({
     .required(),
 
   // number of columns in the board
-  length: Joi.number()
+  height: Joi.number()
     .integer()
     .min(min)
     .max(max)
@@ -31,19 +31,22 @@ const boardSchema = Joi.object({
     .multiple(min)
     .required(),
 
-  board: Joi.array.items(
-    Joi.array().items(
-      Joi.number().valid(0 , 1)
+  board: Joi.array()
+    .length(Joi.ref('width'))
+    .items(
+      Joi.array()
+        .items(
+          Joi.number().valid(0)
+        )
     )
-      .length(Joi.ref('width'))
-  )
-    .length(Joi.ref('length'))
     .required(),
   
   occupied: Joi.array().items(
-    Joi.number().valid(0, 1)
+    Joi.number().valid(0)
   )
-    .length(Joi.ref('length'))
+    .length(Joi.ref('width', {
+      adjust: (val) => val / min
+    }))
     .required(),
 })
 
