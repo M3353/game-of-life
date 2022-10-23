@@ -2,7 +2,7 @@ const Joi = require('joi')
 
 const min = 5;
 const max = 100;
-
+const entrySize = min;
 
 const boardSchema = Joi.object({
   name: Joi.string()
@@ -35,9 +35,7 @@ const boardSchema = Joi.object({
     .length(Joi.ref('width'))
     .items(
       Joi.array()
-        .items(
-          Joi.number().valid(0)
-        )
+        .items(Joi.number().valid(0))
     )
     .required(),
   
@@ -50,6 +48,25 @@ const boardSchema = Joi.object({
     .required(),
 })
 
+const entrySchema = Joi.object({
+	id: Joi.number()
+		.integer()
+		.required(),
+
+	location: Joi.number()
+		.integer()
+		.required(),
+
+	entry: Joi.array()
+		.length(entrySize)
+		.items(
+			Joi.array()
+				.items(Joi.number().valid(0, 1))
+		)
+		.required(),
+})
+
 module.exports = {
-  boardSchema
+  boardSchema,
+	entrySchema
 }
