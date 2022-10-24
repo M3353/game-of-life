@@ -1,0 +1,5 @@
+**/node_modules
+**/*.swp
+**/.env
+
+node-game-of-life/curl_test.sh
