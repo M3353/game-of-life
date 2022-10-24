@@ -1,8 +1,5 @@
 const Joi = require('joi')
-
-const min = 5;
-const max = 100;
-const entrySize = min;
+const { minDim, maxDim, entrySize } = require('./data')
 
 const boardSchema = Joi.object({
   name: Joi.string()
@@ -15,43 +12,45 @@ const boardSchema = Joi.object({
     .integer()
     .required(),
 
-  // number of columns in the board
-  height: Joi.number()
+  rows: Joi.number()
     .integer()
-    .min(min)
-    .max(max)
-    .multiple(min)
+    .min(minDim)
+    .max(maxDim)
+    .multiple(entrySize)
     .required(),
 
-  // number of rows in the board
-  width: Joi.number()
+  columns: Joi.number()
     .integer()
-    .min(min)
-    .max(max)
-    .multiple(min)
+    .min(minDim)
+    .max(maxDim)
+    .multiple(entrySize)
     .required(),
 
   board: Joi.array()
-    .length(Joi.ref('width'))
+    .length(Joi.ref('rows'))
     .items(
       Joi.array()
         .items(Joi.number().valid(0))
-    )
-    .required(),
+    ),
   
-  occupied: Joi.array().items(
-    Joi.number().valid(0)
-  )
-    .length(Joi.ref('width', {
-      adjust: (val) => val / min
-    }))
-    .required(),
+  occupied: Joi.array()
+		.items(
+   		Joi.number().valid(0)
+  	)
 })
 
 const entrySchema = Joi.object({
-	id: Joi.number()
-		.integer()
-		.required(),
+  board: Joi.array()
+    .items(
+      Joi.array()
+        .items(Joi.number().valid(0, 1))
+    )
+    .required(),
+
+  boardOccupied: Joi.array().items(
+    Joi.number().valid(0)
+  )
+    .required(),
 
 	location: Joi.number()
 		.integer()

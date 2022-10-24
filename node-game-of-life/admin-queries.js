@@ -1,4 +1,5 @@
 const Pool = require('pg').Pool
+const { minDim, maxDim, entrySize } = require('./data')
 require('dotenv').config()
 
 const pool = new Pool({
@@ -9,12 +10,22 @@ const pool = new Pool({
 })
 
 const createBoard = (req, res) => {
-	const { id, name, height, width, board, occupied } = req.body
+	const { id, name, rows, columns } = req.body
+
+	const board = 
+		req.body.board 
+			? req.body.board
+			: Array.from(Array(row), () => Array(column).fill(0))
+	const occupied =
+		req.body.occupied
+			? req.body.occupied
+			: Array((minDim / entrySize) * (maxDim / entrySize)).fill(0)
+
 	pool.query(
-		`INSERT INTO boards (id, name, board, occupied, height, width) \
+		`INSERT INTO boards (id, name, board, occupied, rows, columns) \
 		VALUES ($1, $2, $3, $4, $5, $6) \
 		ON CONFLICT (id) DO NOTHING`,
-		[id, name, board, occupied, height, width],
+		[id, name, board, occupied, rows, columns],
 		(err, results) => {
 			if (err) {
 				throw err

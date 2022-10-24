@@ -3,8 +3,7 @@ const bodyParser = require('body-parser')
 const cors = require('cors')
 const admin = require('./admin-queries')
 const player = require('./player-queries')
-const validator = require('./middleware');
-
+const { validator, updateBoardWithUserEntry } = require('./middleware');
 
 const app = express()
 const port = 5431
@@ -24,7 +23,7 @@ app.get('/', (req, res) => {
 })
 app.get('/boards', player.getBoards)
 app.get('/boards/:id', player.getBoardById)
-app.put('/boards/:id', player.updateBoard)
+app.put('/boards/:id', validator('entrySchema'), updateBoardWithUserEntry,  player.updateBoard)
 app.post('/admin/:id', validator('boardSchema'), admin.createBoard)
 app.delete('/admin/:id', admin.deleteBoard)
 
