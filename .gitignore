@@ -2,4 +2,4 @@
 **/*.swp
 **/.env
 
-node-game-of-life/curl_test.sh
+node-game-of-life/tests
