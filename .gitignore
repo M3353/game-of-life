@@ -3,3 +3,35 @@
 **/.env
 
 node-game-of-life/tests
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+frontend-game-of-life/.pnp
+frontend-game-of-life/.pnp.js
+
+# testing
+frontend-game-of-life/coverage
+
+# next.js
+frontend-game-of-life/.next/
+frontend-game-of-life/out/
+
+# production
+frontend-game-of-life/build
+
+# misc
+frontend-game-of-life/.DS_Store
+frontend-game-of-life/*.pem
+
+# debug
+frontend-game-of-life/npm-debug.log*
+frontend-game-of-life/yarn-debug.log*
+frontend-game-of-life/yarn-error.log*
+frontend-game-of-life/.pnpm-debug.log*
+
+# local env files
+frontend-game-of-life/.env*.local
+
+# vercel
+frontend-game-of-life/.vercel
