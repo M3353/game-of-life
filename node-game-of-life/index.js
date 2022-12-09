@@ -1,6 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-// const ws = require("ws");
+const ws = require("ws");
 const cors = require("cors");
 const admin = require("./admin-queries");
 const player = require("./player-queries");
@@ -9,15 +9,29 @@ const {
   updateBoardWithUserEntry,
   incrementBoard,
 } = require("./middleware");
-const { application } = require("express");
-
+const { broadcast } = require("./websocket-utils");
 const app = express();
 const port = 5431;
 
-// const wsServer = new ws.Server({ noServer: true });
-// wsServer.on("connection", (socket) => {
-//   socket.on("message", (message) => console.log(message));
-// });
+function setupWebsocket(server) {
+  const wsServer = new ws.Server({ noServer: true });
+
+  broadcast(wsServer.clients);
+
+  server.on("upgrade", (req, socket, head) => {
+    wsServer.handleUpgrade(req, socket, head, (socket) => {
+      wsServer.emit("connection", socket, req);
+    });
+  });
+
+  wsServer.on("connection", (socket) => {
+    socket.on("message", (message) => {
+      console.log(message);
+    });
+
+    socket.send("connection established");
+  });
+}
 
 // middleware
 app.use(cors());
@@ -50,9 +64,4 @@ const server = app.listen(port, () => {
   console.log(`App running on port ${port}.`);
 });
 
-// set up web socket connection
-// server.on("upgrade", (req, socket, head) => {
-//   wsServer.handleUpgrade(req, socket, head, (socket) => {
-//     wsServer.emit("connection", socket, req);
-//   });
-// });
+setupWebsocket(server);

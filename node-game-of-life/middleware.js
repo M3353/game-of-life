@@ -63,8 +63,7 @@ const inBoard = (x, y, nr, nc) => {
   return x >= 0 && y >= 0 && x < nc && y < nr;
 };
 
-const incrementBoard = (req, res, next) => {
-  const { board } = req.body;
+const incrementBoardHelper = (board) => {
   const offsets = [
     [0, -1],
     [0, 1],
@@ -78,8 +77,6 @@ const incrementBoard = (req, res, next) => {
 
   const nc = board.length;
   const nr = board[0].length;
-
-  console.log(board);
 
   const incrementedBoard = board.map((row, r) => {
     return row.map((e, c) => {
@@ -100,9 +97,13 @@ const incrementBoard = (req, res, next) => {
         : 0;
     });
   });
+  return incrementedBoard;
+};
 
-  console.log(incrementedBoard);
+const incrementBoard = (req, res, next) => {
+  const { board } = req.body;
 
+  const incrementedBoard = incrementBoardHelper(board);
   req.body = {
     board: incrementedBoard,
   };
@@ -110,8 +111,19 @@ const incrementBoard = (req, res, next) => {
   next();
 };
 
+const incrementAllBoards = (req, res, next) => {
+  const { boards } = req.body;
+
+  const incrementedBoards = boards.map((board) => incrementBoardHelper(board));
+  req.body = {
+    board: incrementedBoards,
+  };
+  next();
+};
+
 module.exports = {
   validator,
   updateBoardWithUserEntry,
   incrementBoard,
+  incrementAllBoards,
 };
