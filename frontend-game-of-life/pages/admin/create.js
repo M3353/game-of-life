@@ -55,7 +55,6 @@ export default function Create() {
     const url = `http://localhost:${port}/admin/${id}`;
     axios.post(url, body).then((res) => {
       console.log(res);
-      setData(res.data);
     });
   };
 

@@ -6,8 +6,8 @@ import { NextLinkComposed } from "../src/Link";
 
 export default function Admin() {
   return (
-    <Box>
-      <div>welcome admin</div>
+    <Box sx={{ display: "flex", flexDirection: "column" }}>
+      <div>welcome admin!</div>
       {adminLinks.map((link) => (
         <Button
           component={NextLinkComposed}

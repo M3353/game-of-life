@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-import UserGridCanvas from "../components/UserGridCanvas";
-import UserOccupiedGrid from "../components/UserOccupiedGrid";
-import UserSubmitCanvasButton from "../components/UserSubmitCanvasButton";
+import UserCanvas from "../components/UserCanvas";
+import UserCanvasOccupied from "../components/UserCanvasOccupied";
+import UserCanvasSubmitButton from "../components/UserCanvasSubmitButton";
 import { FormControl, InputLabel, MenuItem, Select, Box } from "@mui/material";
 
 const SIZE = 5;
@@ -63,11 +63,14 @@ export default function UserSubmitPage() {
               </Select>
             </FormControl>
           </Box>
-          <UserGridCanvas entry={entry} setEntry={setEntry} />
+          <UserCanvas entry={entry} setEntry={setEntry} />
           {occupied != null && board != null && (
             <Box>
-              <UserOccupiedGrid occupied={occupied} setOccupied={setOccupied} />
-              <UserSubmitCanvasButton
+              <UserCanvasOccupied
+                occupied={occupied}
+                setOccupied={setOccupied}
+              />
+              <UserCanvasSubmitButton
                 board={board}
                 occupied={occupied}
                 entry={entry}

@@ -23,15 +23,6 @@ export default function Boards() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    if (ws.data) {
-      const { message } = ws.data;
-      if (typeof message === "object") {
-        setData(data);
-      }
-    }
-  }, [ws.data]);
-
   return (
     <Box>
       {data != null && (

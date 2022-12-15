@@ -1,5 +1,4 @@
-const Pool = require("pg").Pool;
-const { minDim, maxDim, entrySize } = require("./data");
+const { Pool } = require("pg");
 require("dotenv").config();
 
 const pool = new Pool({
@@ -10,20 +9,13 @@ const pool = new Pool({
 });
 
 const createBoard = (req, res) => {
-  const { id, name, rows, columns } = req.body;
-
-  const board = req.body.board
-    ? req.body.board
-    : Array.from(Array(rows), () => Array(columns).fill(0));
-  const occupied = req.body.occupied
-    ? req.body.occupied
-    : Array((rows / entrySize) * (columns / entrySize)).fill(0);
+  const { id, name, rows, columns, board, occupied, ready } = req.body;
 
   pool.query(
-    `INSERT INTO boards (id, name, board, occupied, rows, columns) \
-		VALUES ($1, $2, $3, $4, $5, $6) \
+    `INSERT INTO boards (id, name, board, occupied, rows, columns, ready) \
+		VALUES ($1, $2, $3, $4, $5, $6, $7) \
 		ON CONFLICT (id) DO NOTHING`,
-    [id, name, board, occupied, rows, columns],
+    [id, name, board, occupied, rows, columns, ready],
     (err, results) => {
       if (err) {
         throw err;
@@ -44,7 +36,23 @@ const deleteBoard = (req, res) => {
   });
 };
 
+const incrementBoard = (req, res) => {
+  const { board, id } = req.body;
+
+  pool.query(
+    "UPDATE boards SET board = $1 WHERE id = $2",
+    [board, id],
+    (err, results) => {
+      if (err) {
+        throw err;
+      }
+      res.status(200).send(`Board ${id} incremented successfully.`);
+    }
+  );
+};
+
 module.exports = {
   createBoard,
   deleteBoard,
+  incrementBoard,
 };

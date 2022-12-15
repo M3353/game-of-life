@@ -2,7 +2,7 @@ import react from "react";
 import axios from "axios";
 import { Button } from "@mui/material";
 
-const UserSubmitCanvasButton = ({ entry, occupied, board, id }) => {
+const UserCanvasSubmitButton = ({ entry, occupied, board, id }) => {
   function handleSubmit() {
     const port = 5431;
     const url = `http://localhost:${port}/boards/${id}`;
@@ -32,4 +32,4 @@ const UserSubmitCanvasButton = ({ entry, occupied, board, id }) => {
   );
 };
 
-export default UserSubmitCanvasButton;
+export default UserCanvasSubmitButton;

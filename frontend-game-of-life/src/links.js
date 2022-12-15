@@ -22,6 +22,10 @@ const adminLinks = [
     name: "Create New Board",
     path: "/admin/create",
   },
+  {
+    name: "Delete Board",
+    path: "/admin/delete",
+  },
 ];
 
 module.exports = {

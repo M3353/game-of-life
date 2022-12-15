@@ -6,12 +6,13 @@ import { navLinks } from "../src/links";
 const Footer = () => {
   return (
     <>
-      {navLinks.map((link) => (
+      {navLinks.map((link, i) => (
         <Button
           component={NextLinkComposed}
           to={{
             pathname: link.path,
           }}
+          key={i}
         >
           {link.name}
         </Button>

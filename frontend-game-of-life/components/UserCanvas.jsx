@@ -28,7 +28,7 @@ const UserGridCanvasRow = ({ row, rowIndex, entry, setEntry }) => {
   );
 };
 
-const UserGridCanvas = ({ entry, setEntry }) => {
+const UserCanvas = ({ entry, setEntry }) => {
   return (
     <Grid container columns={8}>
       <Grid container>
@@ -47,4 +47,4 @@ const UserGridCanvas = ({ entry, setEntry }) => {
   );
 };
 
-export default UserGridCanvas;
+export default UserCanvas;

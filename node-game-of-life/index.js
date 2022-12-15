@@ -6,8 +6,8 @@ const admin = require("./admin-queries");
 const player = require("./player-queries");
 const {
   validator,
+  createValidBoard,
   updateBoardWithUserEntry,
-  incrementBoard,
 } = require("./middleware");
 const { broadcast } = require("./websocket-utils");
 const app = express();
@@ -56,8 +56,14 @@ app.put(
   updateBoardWithUserEntry,
   player.updateBoard
 );
-app.post("/boards/:id", incrementBoard, player.updateBoardWithIncremented);
-app.post("/admin/:id", validator("boardSchema"), admin.createBoard);
+
+app.post("/admin", admin.incrementBoard);
+app.post(
+  "/admin/:id",
+  validator("boardSchema"),
+  createValidBoard,
+  admin.createBoard
+);
 app.delete("/admin/:id", admin.deleteBoard);
 
 const server = app.listen(port, () => {

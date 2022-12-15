@@ -1,3 +1,5 @@
+const fs = require("fs");
+
 const schemas = require("./schemas");
 const { minDim, maxDim, entrySize } = require("./data");
 
@@ -19,6 +21,79 @@ const validator = function (schema) {
     next();
   };
 };
+
+function foundOne(rowStart, rowEnd, colStart, colEnd, board) {
+  // better algorithm is to sort and check the first val, O(nlogn)
+  // current is O(n^2)
+
+  for (let i = rowStart; i < rowEnd; i++) {
+    for (let j = colStart; j < colEnd; j++) {
+      if (board[i][j] >= 1) return true;
+    }
+  }
+  return false;
+}
+
+const createValidBoard = (req, res, next) => {
+  const { rows, columns, name } = req.body;
+  let numOccupied = 0;
+
+  // check for empty board
+  const board = req.body.board.length
+    ? req.body.board
+    : Array.from(Array(rows), () => Array(columns).fill(0));
+  const occupied = req.body.occupied.length
+    ? req.body.occupied
+    : Array.from(Array(rows / entrySize), () =>
+        Array(columns / entrySize).fill(0)
+      );
+
+  // fill occupied board and count number of occupied slots
+  for (let i = 0; i < rows; i += entrySize) {
+    for (let j = 0; j < columns; j += entrySize) {
+      if (foundOne(i, j, i + entrySize, j + entrySize, board)) {
+        occupied[i][j] = 1;
+        numOccupied++;
+      }
+    }
+  }
+
+  // set ready to 0 if board is not completely occupied
+  const ready =
+    numOccupied == occupied.length * occupied[0].length ? true : false;
+
+  // generate unique id ? synchronously
+  const rawData = fs.readFileSync("ids.json");
+  const dataString = JSON.parse(rawData);
+  const id = parseInt(dataString.id);
+
+  // write new id ? asynchronously
+  const newId = JSON.stringify({ id: id + 1 }, null, 2);
+  fs.writeFile("ids.json", newId, (err) => {
+    if (err) throw err;
+    console.log(`new id ${id + 1} written to id file`);
+  });
+
+  // update the request body with valid board values
+  req.body = {
+    board,
+    occupied,
+    rows,
+    columns,
+    ready,
+    name,
+    id,
+  };
+
+  next();
+};
+
+function isBoardFull(occupied) {
+  for (let isOccupied of occupied) {
+    if (!isOccupied) return false;
+  }
+  return true;
+}
 
 const updateBoardWithUserEntry = (req, res, next) => {
   const { board, boardOccupied, location, entry } = req.body;
@@ -55,75 +130,13 @@ const updateBoardWithUserEntry = (req, res, next) => {
   req.body = {
     board: updatedBoard,
     occupied: updatedBoardOccupied,
-  };
-  next();
-};
-
-const inBoard = (x, y, nr, nc) => {
-  return x >= 0 && y >= 0 && x < nc && y < nr;
-};
-
-const incrementBoardHelper = (board) => {
-  const offsets = [
-    [0, -1],
-    [0, 1],
-    [-1, 0],
-    [1, 0],
-    [-1, 1],
-    [-1, -1],
-    [1, -1],
-    [1, 1],
-  ];
-
-  const nc = board.length;
-  const nr = board[0].length;
-
-  const incrementedBoard = board.map((row, r) => {
-    return row.map((e, c) => {
-      let alive = 0;
-
-      // count alive neighbors
-      offsets.forEach((coord) => {
-        const x = coord[0] + c;
-        const y = coord[1] + r;
-
-        alive += inBoard(x, y, nr, nc) && board[y][x] > 0 ? 1 : 0;
-      });
-
-      return e > 0 && (alive == 2 || alive == 3)
-        ? e + 1
-        : e == 0 && alive == 3
-        ? 1
-        : 0;
-    });
-  });
-  return incrementedBoard;
-};
-
-const incrementBoard = (req, res, next) => {
-  const { board } = req.body;
-
-  const incrementedBoard = incrementBoardHelper(board);
-  req.body = {
-    board: incrementedBoard,
-  };
-
-  next();
-};
-
-const incrementAllBoards = (req, res, next) => {
-  const { boards } = req.body;
-
-  const incrementedBoards = boards.map((board) => incrementBoardHelper(board));
-  req.body = {
-    board: incrementedBoards,
+    ready: isBoardFull(updatedBoardOccupied),
   };
   next();
 };
 
 module.exports = {
   validator,
+  createValidBoard,
   updateBoardWithUserEntry,
-  incrementBoard,
-  incrementAllBoards,
 };

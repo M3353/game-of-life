@@ -1,36 +1,29 @@
+import { Box } from "@mui/system";
 import React, { useEffect } from "react";
-import axios from "axios";
 import BoardGraphics from "./pixi/BoardGraphics";
 
 const BoardsContainer = ({ data, fetchData, ws }) => {
-  function updateAndSendData() {
-    data.forEach((entry) => {
-      const { board, id } = entry;
-      const port = 5431;
-      const url = `http://localhost:${port}/boards/${id}`;
-
-      axios.post(url, { board }).then((res) => {
-        console.log(res);
-      });
-    });
-    fetchData();
-  }
-
   useEffect(() => {
     if (ws.data) {
       const { message } = ws.data;
       if (typeof message === "object") {
-        updateAndSendData();
+        fetchData();
       }
     }
   }, [ws.data]);
 
   return (
-    <>
-      {data.map((entry) => (
-        <BoardGraphics data={entry} />
-      ))}
-    </>
+    <Box sx={{ display: "flex", flexDirection: "column" }}>
+      {data.map(
+        (entry, i) =>
+          entry.ready && (
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <div>{entry.name}</div>
+              <BoardGraphics data={entry} key={i} />
+            </Box>
+          )
+      )}
+    </Box>
   );
 };
 
