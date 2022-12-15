@@ -89,29 +89,22 @@ const createValidBoard = (req, res, next) => {
 };
 
 function isBoardFull(occupied) {
-  for (let isOccupied of occupied) {
-    if (!isOccupied) return false;
+  for (let i = 0; i < occupied.length; i++) {
+    for (var j = 0; j < occupied[i].length; j++) {
+      if (occupied[i][j] == 0) return false;
+    }
   }
   return true;
 }
 
 const updateBoardWithUserEntry = (req, res, next) => {
-  const { board, boardOccupied, location, entry } = req.body;
+  const { board, boardOccupied, coords, entry } = req.body;
 
-  const nc = board.length;
-  const nr = board[0].length;
+  const i = coords[0];
+  const j = coords[1];
 
-  const _nc = location % nc;
-  const _nr = location / nc;
-
-  if (location > 0 && location >= _nc * _nr) {
-    throw new Error(
-      `Index Error: Location '${location}' is out of bounds '${_nr}' '${_nr}'`
-    );
-  }
-
-  const row_offset = entrySize * _nr;
-  const col_offset = entrySize * _nc;
+  const row_offset = entrySize * i;
+  const col_offset = entrySize * j;
 
   const updatedBoard = board.map((row, r) => {
     return row.map((e, c) => {
@@ -120,18 +113,24 @@ const updateBoardWithUserEntry = (req, res, next) => {
         c >= col_offset &&
         c < col_offset + entrySize
         ? entry[r % entrySize][c % entrySize]
-        : c;
+        : e;
     });
   });
 
-  const updatedBoardOccupied = boardOccupied.slice();
-  updatedBoardOccupied[location] = 1;
+  const updatedBoardOccupied = boardOccupied.map(function (arr) {
+    return arr.slice();
+  });
+
+  updatedBoardOccupied[i][j] = 1;
 
   req.body = {
     board: updatedBoard,
     occupied: updatedBoardOccupied,
     ready: isBoardFull(updatedBoardOccupied),
   };
+
+  console.log(req.body);
+
   next();
 };
 

@@ -36,7 +36,7 @@ const entrySchema = Joi.object({
     .items(Joi.array().items(Joi.number().valid(0, 1)))
     .required(),
 
-  location: Joi.number().integer().required(),
+  coords: Joi.array().items(Joi.number().valid(0, 1)).required(),
 
   entry: Joi.array()
     .length(entrySize)

@@ -5,7 +5,7 @@ const cellStyle = {
   border: "3px, black",
 };
 
-const UserCanvasOccupied = ({ occupied, setOccupied }) => {
+const UserCanvasOccupied = ({ occupied, setOccupied, setLocation }) => {
   // hax rerender
   const [render, setRender] = useState(false);
 
@@ -14,10 +14,9 @@ const UserCanvasOccupied = ({ occupied, setOccupied }) => {
     const updatedOccupied = occupied;
     updatedOccupied[i][j] ^= 1;
     setOccupied(updatedOccupied);
+    setLocation([i, j]);
     setRender(!render);
   };
-
-  console.log(occupied.length, occupied[0].length);
 
   return (
     <>

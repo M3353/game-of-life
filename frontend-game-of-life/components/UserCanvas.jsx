@@ -11,7 +11,7 @@ const UserGridCanvasRow = ({ row, rowIndex, entry, setEntry }) => {
       {row.map((item, columnIndex) => (
         <Grid
           item
-          key={rowIndex * columnIndex}
+          key={(rowIndex + 1) * (columnIndex + 1)}
           xs={2.4}
           sx={{ border: "3px, solid, black" }}
           onMouseDown={() => {
@@ -39,6 +39,7 @@ const UserCanvas = ({ entry, setEntry }) => {
               rowIndex={i}
               entry={entry}
               setEntry={setEntry}
+              key={i}
             />
           );
         })}

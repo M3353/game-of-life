@@ -13,6 +13,7 @@ export default function UserSubmitPage() {
   const [data, setData] = useState(null);
   const [board, setBoard] = useState(null);
   const [occupied, setOccupied] = useState(null);
+  const [location, setLocation] = useState([]);
   const [entry, setEntry] = useState(
     new Array(SIZE).fill(new Array(SIZE).fill(0))
   );
@@ -69,12 +70,14 @@ export default function UserSubmitPage() {
               <UserCanvasOccupied
                 occupied={occupied}
                 setOccupied={setOccupied}
+                setLocation={setLocation}
               />
               <UserCanvasSubmitButton
                 board={board}
                 occupied={occupied}
                 entry={entry}
                 id={id}
+                location={location}
               />
             </Box>
           )}
