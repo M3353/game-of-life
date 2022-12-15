@@ -1,23 +1,24 @@
-import React, { useState } from "react";
+import React from "react";
+import { Box } from "@mui/system";
 import { Button } from "@mui/material";
+import { adminLinks } from "../src/links";
 import { NextLinkComposed } from "../src/Link";
-import { navLinks } from "../src/links";
 
-const Footer = () => {
+export default function Admin() {
   return (
-    <>
-      {navLinks.map((link) => (
+    <Box>
+      <div>welcome admin</div>
+      {adminLinks.map((link) => (
         <Button
           component={NextLinkComposed}
           to={{
             pathname: link.path,
           }}
+          variant="outlined"
         >
           {link.name}
         </Button>
       ))}
-    </>
+    </Box>
   );
-};
-
-export default Footer;
+}

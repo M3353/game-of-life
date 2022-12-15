@@ -71,6 +71,7 @@ export default function UserSubmitPage() {
                 board={board}
                 occupied={occupied}
                 entry={entry}
+                id={id}
               />
             </Box>
           )}

@@ -60,14 +60,6 @@ const updateBoardWithIncremented = (req, res) => {
   );
 };
 
-// const updateAllBoardsWithIncremented = (req, res) => {
-//   const { boards } = req.body;
-
-//   pool.query(
-//     "UPDATE boards SET board ="
-//   )
-// }
-
 module.exports = {
   getBoards,
   getBoardById,

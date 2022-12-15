@@ -1,4 +1,4 @@
-export const navLinks = [
+const navLinks = [
   {
     name: "Home",
     path: "/",
@@ -11,4 +11,20 @@ export const navLinks = [
     name: "Boards",
     path: "/boards",
   },
+  {
+    name: "Admin",
+    path: "/admin",
+  },
 ];
+
+const adminLinks = [
+  {
+    name: "Create New Board",
+    path: "/admin/create",
+  },
+];
+
+module.exports = {
+  navLinks,
+  adminLinks,
+};
