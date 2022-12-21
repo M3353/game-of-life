@@ -64,4 +64,8 @@ Over the course of the semester I completed a e2e working model of game of life.
 
 In future semesters, I hope to create a better design for the site, and add more algorithms to generate art.
 
+## Demo
+
+
+https://user-images.githubusercontent.com/55003556/209017722-ffc391c2-f949-4710-af27-8ee7b3978064.mov
 
