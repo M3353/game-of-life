@@ -12,7 +12,7 @@ export default function Boards() {
   });
 
   function fetchData() {
-    const port = 5431;
+    const port = process.env.PORT;
     const url = `http://localhost:${port}/boards`;
     axios.get(url).then((res) => {
       setData(res.data);

@@ -100,7 +100,7 @@ async function broadcast(clients) {
     for (let c of clients.values()) {
       c.send(data);
     }
-  }, 1000);
+  }, 3000);
   return incrementedBoards;
 }
 

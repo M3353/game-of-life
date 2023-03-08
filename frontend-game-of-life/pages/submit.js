@@ -22,8 +22,13 @@ export default function UserSubmitPage() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    getBoard(id);
+    getOccupied(id);
+  }, [data]);
+
   function fetchData() {
-    const port = 5431;
+    const port = process.env.PORT;
     const url = `http://localhost:${port}/boards/`;
     axios.get(url).then((res) => {
       console.log(res);
@@ -31,16 +36,35 @@ export default function UserSubmitPage() {
     });
   }
 
+  function getBoard(selectedId) {
+    if (data != null) {
+      data.every((entry) => {
+        if (entry.id == selectedId) {
+          setBoard(entry.board);
+          return;
+        }
+      });
+      console.log(board);
+    }
+  }
+
+  function getOccupied(selectedId) {
+    if (data != null) {
+      data.every((entry) => {
+        if (entry.id == selectedId) {
+          setOccupied(entry.occupied);
+          return;
+        }
+      });
+    }
+  }
+
   const handleSelectBoard = (event) => {
     const selectedId = event.target.value;
     setId(selectedId);
 
-    data.forEach((entry) => {
-      if (entry.id == selectedId) {
-        setOccupied(entry.occupied);
-        setBoard(entry.board);
-      }
-    });
+    getOccupied(selectedId);
+    getBoard(selectedId);
   };
 
   return (
@@ -58,7 +82,6 @@ export default function UserSubmitPage() {
                 onChange={handleSelectBoard}
               >
                 {data.map((entry) => {
-                  console.log(entry);
                   return <MenuItem value={entry.id}>{entry.id}</MenuItem>;
                 })}
               </Select>
@@ -78,6 +101,8 @@ export default function UserSubmitPage() {
                 entry={entry}
                 id={id}
                 location={location}
+                fetchData={fetchData}
+                getBoard={getBoard}
               />
             </Box>
           )}

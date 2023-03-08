@@ -6,16 +6,12 @@ const cellStyle = {
 };
 
 const UserCanvasOccupied = ({ occupied, setOccupied, setLocation }) => {
-  // hax rerender
-  const [render, setRender] = useState(false);
-
   const handleToggle = (i, j) => {
     // create duplicate of occupied and replace
     const updatedOccupied = occupied;
     updatedOccupied[i][j] ^= 1;
     setOccupied(updatedOccupied);
     setLocation([i, j]);
-    setRender(!render);
   };
 
   return (

@@ -1,26 +1,6 @@
 const fs = require("fs");
 
-const schemas = require("./schemas");
 const { minDim, maxDim, entrySize } = require("./data");
-
-const validator = function (schema) {
-  // check if the schema exists
-  if (!schemas.hasOwnProperty(schema)) {
-    throw new Error(`Schema ${schema} does not exist`);
-  }
-
-  return function (req, res, next) {
-    const { error } = schemas[schema].validate(req.body);
-    if (error) {
-      return error.isJoi
-        ? res.status(422).json({
-            status: error,
-          })
-        : res.status(500);
-    }
-    next();
-  };
-};
 
 function foundOne(rowStart, rowEnd, colStart, colEnd, board) {
   // better algorithm is to sort and check the first val, O(nlogn)
@@ -106,14 +86,21 @@ const updateBoardWithUserEntry = (req, res, next) => {
   const row_offset = entrySize * i;
   const col_offset = entrySize * j;
 
-  const updatedBoard = board.map((row, r) => {
-    return row.map((e, c) => {
-      return r >= row_offset &&
+  console.log(board);
+
+  const updatedBoard = board.map(function (arr) {
+    return arr.slice();
+  });
+
+  board.forEach((row, r) => {
+    row.map((e, c) => {
+      updatedBoard[r][c] =
+        r >= row_offset &&
         r < row_offset + entrySize &&
         c >= col_offset &&
         c < col_offset + entrySize
-        ? entry[r % entrySize][c % entrySize]
-        : e;
+          ? entry[r % entrySize][c % entrySize]
+          : e;
     });
   });
 
@@ -129,13 +116,12 @@ const updateBoardWithUserEntry = (req, res, next) => {
     ready: isBoardFull(updatedBoardOccupied),
   };
 
-  console.log(req.body);
+  console.log("new board", updatedBoard);
 
   next();
 };
 
 module.exports = {
-  validator,
   createValidBoard,
   updateBoardWithUserEntry,
 };

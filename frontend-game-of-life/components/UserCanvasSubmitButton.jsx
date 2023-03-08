@@ -2,8 +2,17 @@ import react from "react";
 import axios from "axios";
 import { Button } from "@mui/material";
 
-const UserCanvasSubmitButton = ({ entry, occupied, board, id, location }) => {
+const UserCanvasSubmitButton = ({
+  entry,
+  occupied,
+  board,
+  id,
+  location,
+  fetchData,
+  getBoard,
+}) => {
   function handleSubmit() {
+    console.log(board);
     const port = 5431;
     const url = `http://localhost:${port}/boards/${id}`;
     const data = {
@@ -22,6 +31,7 @@ const UserCanvasSubmitButton = ({ entry, occupied, board, id, location }) => {
       })
       .then(({ data }) => {
         console.log(data);
+        fetchData();
       });
   }
 

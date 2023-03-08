@@ -1,10 +1,6 @@
 import React from "react";
 import Grid from "@mui/material/Grid";
 
-const cellStyle = {
-  border: "3px, black",
-};
-
 const UserGridCanvasRow = ({ row, rowIndex, entry, setEntry }) => {
   return (
     <>

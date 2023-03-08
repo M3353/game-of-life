@@ -2,16 +2,14 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ws = require("ws");
 const cors = require("cors");
-const admin = require("./admin-queries");
-const player = require("./player-queries");
+const queries = require("./src/queries");
 const {
-  validator,
   createValidBoard,
   updateBoardWithUserEntry,
-} = require("./middleware");
-const { broadcast } = require("./websocket-utils");
+} = require("./src/middleware");
+const { broadcast } = require("./src/websocket-utils");
 const app = express();
-const port = 5431;
+const port = process.env.PORT || 5431;
 
 function setupWebsocket(server) {
   const wsServer = new ws.Server({ noServer: true });
@@ -48,23 +46,13 @@ app.get("/", (req, res) => {
 });
 
 // queries
-app.get("/boards", player.getBoards);
-app.get("/boards/:id", player.getBoardById);
-app.put(
-  "/boards/:id",
-  validator("entrySchema"),
-  updateBoardWithUserEntry,
-  player.updateBoard
-);
+app.get("/boards", queries.getBoards);
+app.get("/boards/:id", queries.getBoardById);
+app.put("/boards/:id", updateBoardWithUserEntry, queries.updateBoard);
 
-app.post("/admin", admin.incrementBoard);
-app.post(
-  "/admin/:id",
-  validator("boardSchema"),
-  createValidBoard,
-  admin.createBoard
-);
-app.delete("/admin/:id", admin.deleteBoard);
+app.post("/admin", queries.incrementBoard);
+app.post("/admin/:id", createValidBoard, queries.createBoard);
+app.delete("/admin/:id", queries.deleteBoard);
 
 const server = app.listen(port, () => {
   console.log(`App running on port ${port}.`);
