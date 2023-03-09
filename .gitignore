@@ -1,6 +1,6 @@
 **/node_modules
 **/*.swp
-**/.env
+**/.env.**
 
 node-game-of-life/tests
 
@@ -37,3 +37,7 @@ frontend-game-of-life/.env*.local
 
 # vercel
 frontend-game-of-life/.vercel
+
+# package.json
+**/package.json
+**/package-lock.json
