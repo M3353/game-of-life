@@ -1,3 +1,4 @@
+require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
 const axios = require("axios");
 
 const inBoard = (x, y, nr, nc) => {
@@ -18,10 +19,10 @@ const incrementBoardHelper = (entry) => {
     [1, 1],
   ];
 
-  const nc = board.length;
-  const nr = board[0].length;
+  const nc = board.data.length;
+  const nr = board.data[0].length;
 
-  const incrementedBoard = board.map((row, r) => {
+  const incrementedBoard = board.data.map((row, r) => {
     return row.map((e, c) => {
       let alive = 0;
 
@@ -30,7 +31,7 @@ const incrementBoardHelper = (entry) => {
         const x = coord[0] + c;
         const y = coord[1] + r;
 
-        alive += inBoard(x, y, nr, nc) && board[y][x] > 0 ? 1 : 0;
+        alive += inBoard(x, y, nr, nc) && board.data[y][x] > 0 ? 1 : 0;
       });
 
       return e > 0 && (alive == 2 || alive == 3)
@@ -42,7 +43,7 @@ const incrementBoardHelper = (entry) => {
   });
 
   return {
-    board: incrementedBoard,
+    board: { data: incrementedBoard },
     id,
     name,
     occupied,
@@ -74,7 +75,7 @@ async function waitInterval(callback, ms) {
 }
 
 async function updateBoardWithIncremented(data) {
-  const postURL = "http://localhost:5431/admin";
+  const postURL = `${process.env.NEXT_PUBLIC_VERCEL_URL}/admin`;
   for (const entry of data) {
     const incrementedBoard = {
       board: entry.board,
@@ -85,7 +86,8 @@ async function updateBoardWithIncremented(data) {
 }
 
 async function broadcast(clients) {
-  const url = "http://localhost:5431/boards";
+  const url = `${process.env.NEXT_PUBLIC_VERCEL_URL}/boards`;
+  console.log(url);
   let incrementedBoards = [];
   await waitInterval(async function () {
     const res = await axios.get(url);

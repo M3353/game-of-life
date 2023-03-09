@@ -2,8 +2,8 @@
 CREATE TABLE "Board" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(32) NOT NULL,
-    "board" INTEGER[],
-    "occupied" INTEGER[],
+    "board" JSONB NOT NULL,
+    "occupied" JSONB NOT NULL,
     "rows" SMALLINT NOT NULL,
     "columns" SMALLINT NOT NULL,
     "ready" BOOLEAN,

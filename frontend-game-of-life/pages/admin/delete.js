@@ -12,18 +12,18 @@ import axios from "axios";
 export default function Delete() {
   const [data, setData] = useState();
   const [id, setId] = useState();
-  const port = 5431;
+  const url = process.env.NEXT_PUBLIC_VERCEL_URL;
 
   function fetchData() {
-    const url = `http://localhost:${port}/boards`;
-    axios.get(url).then((res) => {
+    const endpoint = `${url}/boards`;
+    axios.get(endpoint).then((res) => {
       setData(res.data);
     });
   }
 
   function deleteBoard() {
-    const url = `http://localhost:${port}/admin/${id}`;
-    axios.delete(url).then((res) => {
+    const endpoint = `${url}/admin/${id}`;
+    axios.delete(endpoint).then((res) => {
       console.log(res.status);
     });
   }

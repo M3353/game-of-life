@@ -1,5 +1,3 @@
-const fs = require("fs");
-
 const { minDim, maxDim, entrySize } = require("./data");
 
 function foundOne(rowStart, rowEnd, colStart, colEnd, board) {
@@ -43,26 +41,25 @@ const createValidBoard = (req, res, next) => {
     numOccupied == occupied.length * occupied[0].length ? true : false;
 
   // generate unique id ? synchronously
-  const rawData = fs.readFileSync("ids.json");
-  const dataString = JSON.parse(rawData);
-  const id = parseInt(dataString.id);
+  // const rawData = fs.readFileSync("ids.json");
+  // const dataString = JSON.parse(rawData);
+  // const id = parseInt(dataString.id);
 
   // write new id ? asynchronously
-  const newId = JSON.stringify({ id: id + 1 }, null, 2);
-  fs.writeFile("ids.json", newId, (err) => {
-    if (err) throw err;
-    console.log(`new id ${id + 1} written to id file`);
-  });
+  // const newId = JSON.stringify({ id: id + 1 }, null, 2);
+  // fs.writeFile("ids.json", newId, (err) => {
+  //   if (err) throw err;
+  //   console.log(`new id ${id + 1} written to id file`);
+  // });
 
   // update the request body with valid board values
   req.body = {
-    board,
-    occupied,
+    board: { data: board },
+    occupied: { data: occupied },
     rows,
     columns,
     ready,
     name,
-    id,
   };
 
   next();
@@ -85,8 +82,6 @@ const updateBoardWithUserEntry = (req, res, next) => {
 
   const row_offset = entrySize * i;
   const col_offset = entrySize * j;
-
-  console.log(board);
 
   const updatedBoard = board.map(function (arr) {
     return arr.slice();
@@ -111,8 +106,8 @@ const updateBoardWithUserEntry = (req, res, next) => {
   updatedBoardOccupied[i][j] = 1;
 
   req.body = {
-    board: updatedBoard,
-    occupied: updatedBoardOccupied,
+    board: { data: updatedBoard },
+    occupied: { data: updatedBoardOccupied },
     ready: isBoardFull(updatedBoardOccupied),
   };
 

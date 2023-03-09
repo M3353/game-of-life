@@ -7,14 +7,17 @@ import { Box } from "@mui/system";
 
 export default function Boards() {
   const [data, setData] = useState(null);
+  const url = process.env.NEXT_PUBLIC_VERCEL_URL;
   const ws = useWebSocket({
-    socketUrl: "ws://localhost:5431",
+    socketUrl:
+      process.env.NODE_ENV == "production"
+        ? `ws://${process.env.NEXT_PUBLIC_VERCEL_URL.replace("https://", "")}`
+        : `ws://${process.env.NEXT_PUBLIC_VERCEL_URL.replace("http://", "")}`,
   });
 
   function fetchData() {
-    const port = process.env.PORT;
-    const url = `http://localhost:${port}/boards`;
-    axios.get(url).then((res) => {
+    const endpoint = `${url}/boards`;
+    axios.get(endpoint).then((res) => {
       setData(res.data);
     });
   }

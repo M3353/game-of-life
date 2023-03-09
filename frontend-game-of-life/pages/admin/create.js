@@ -41,19 +41,19 @@ export default function Create() {
   };
 
   const createNewBoard = () => {
-    const port = 5431;
+    const url = process.env.NEXT_PUBLIC_VERCEL_URL;
     const id = 0;
     const body = {
       id,
       name,
       rows: parseInt(row),
       columns: parseInt(col),
-      board: [],
-      occupied: [],
+      board: { data: [] },
+      occupied: { data: [] },
     };
 
-    const url = `http://localhost:${port}/admin/${id}`;
-    axios.post(url, body).then((res) => {
+    const endpoint = `${url}/admin/${id}`;
+    axios.post(endpoint, body).then((res) => {
       console.log(res);
     });
   };

@@ -1,10 +1,6 @@
 import React, { useState } from "react";
 import Grid from "@mui/material/Grid";
 
-const cellStyle = {
-  border: "3px, black",
-};
-
 const UserCanvasOccupied = ({ occupied, setOccupied, setLocation }) => {
   const handleToggle = (i, j) => {
     // create duplicate of occupied and replace

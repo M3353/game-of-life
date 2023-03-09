@@ -28,9 +28,9 @@ export default function UserSubmitPage() {
   }, [data]);
 
   function fetchData() {
-    const port = process.env.PORT;
-    const url = `http://localhost:${port}/boards/`;
-    axios.get(url).then((res) => {
+    const url = process.env.NEXT_PUBLIC_VERCEL_URL;
+    const endpoint = `${url}/boards/`;
+    axios.get(endpoint).then((res) => {
       console.log(res);
       setData(res.data);
     });
@@ -40,11 +40,10 @@ export default function UserSubmitPage() {
     if (data != null) {
       data.every((entry) => {
         if (entry.id == selectedId) {
-          setBoard(entry.board);
+          setBoard(entry.board.data);
           return;
         }
       });
-      console.log(board);
     }
   }
 
@@ -52,7 +51,8 @@ export default function UserSubmitPage() {
     if (data != null) {
       data.every((entry) => {
         if (entry.id == selectedId) {
-          setOccupied(entry.occupied);
+          setOccupied(entry.occupied.data);
+          console.log(occupied);
           return;
         }
       });

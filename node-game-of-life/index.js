@@ -59,3 +59,5 @@ const server = app.listen(port, () => {
 });
 
 setupWebsocket(server);
+
+module.exports = app;

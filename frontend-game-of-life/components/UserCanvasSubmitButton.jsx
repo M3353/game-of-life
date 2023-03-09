@@ -13,8 +13,8 @@ const UserCanvasSubmitButton = ({
 }) => {
   function handleSubmit() {
     console.log(board);
-    const port = 5431;
-    const url = `http://localhost:${port}/boards/${id}`;
+    const url = process.env.NEXT_PUBLIC_VERCEL_URL;
+    const endpoint = `${url}/boards/${id}`;
     const data = {
       boardOccupied: occupied,
       board,
@@ -23,7 +23,7 @@ const UserCanvasSubmitButton = ({
     };
 
     axios
-      .put(url, data, {
+      .put(endpoint, data, {
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json;charset=UTF-8",

@@ -2,12 +2,11 @@ const prisma = require("./prisma");
 require("dotenv").config();
 
 async function createBoard(req, res) {
-  const { id, name, rows, columns, board, occupied, ready } = req.body;
+  const { name, rows, columns, board, occupied, ready } = req.body;
 
   try {
     const newBoard = await prisma.board.create({
       data: {
-        id: id,
         name: name,
         board: board,
         occupied: occupied,
@@ -16,7 +15,8 @@ async function createBoard(req, res) {
         ready: ready,
       },
     });
-    res.status(201).json(newBoard).send(`Board added with ID: ${id}.`);
+    console.log(newBoard);
+    res.status(201).send(`Board added`);
   } catch (e) {
     // error handler
     throw e;
@@ -26,12 +26,12 @@ async function createBoard(req, res) {
 async function deleteBoard(req, res) {
   const id = parseInt(req.params.id);
   try {
-    const board = await prisma.board.delete({
+    await prisma.board.delete({
       where: {
         id,
       },
     });
-    res.status(200).json(board).send(`Board deleted with ID: ${id}`);
+    res.status(200).send(`Board deleted with ID: ${id}`);
   } catch (e) {
     throw e;
   }
@@ -41,14 +41,11 @@ async function incrementBoard(req, res) {
   const { board, id } = req.body;
 
   try {
-    const incrementedBoard = await prisma.board.update({
+    await prisma.board.update({
       where: { id },
       data: { board: board },
     });
-    res
-      .status(200)
-      .json(incrementedBoard)
-      .send(`Board ${id} incremented successfully.`);
+    res.status(200).send(`Board ${id} incremented successfully.`);
   } catch (e) {
     throw e;
   }
@@ -75,6 +72,7 @@ async function getBoardById(req, res) {
         id: id,
       },
     });
+    console.log(fetchedBoard);
     res.status(200).json(fetchedBoard);
   } catch (e) {
     throw e;
@@ -90,10 +88,8 @@ async function updateBoard(req, res) {
       where: { id },
       data: { board: board, occupied: occupied, ready: ready },
     });
-    res
-      .status(200)
-      .json(updatedBoard)
-      .send(`Board ${id} incremented successfully.`);
+    res.json(updatedBoard);
+    res.status(200).send(`Board ${id} incremented successfully.`);
   } catch (e) {
     throw e;
   }

@@ -70,7 +70,7 @@ const BoardGraphics = ({ data }) => {
     <>
       {mounted && (
         <Stage width={stageWidth} height={stageHeight}>
-          {data.board.map((row, i) => {
+          {data.board.data.map((row, i) => {
             return row.map((item, j) => {
               if (item > maxVal) setMaxVal(item);
               if (item < minVal) setMinVal(item);
