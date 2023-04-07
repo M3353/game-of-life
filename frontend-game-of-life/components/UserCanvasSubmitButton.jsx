@@ -12,7 +12,6 @@ const UserCanvasSubmitButton = ({
   getBoard,
 }) => {
   function handleSubmit() {
-    console.log(board);
     const url = process.env.NEXT_PUBLIC_VERCEL_URL;
     const endpoint = `${url}/boards/${id}`;
     const data = {

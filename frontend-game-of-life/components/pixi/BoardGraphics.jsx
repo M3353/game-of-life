@@ -1,9 +1,8 @@
 import { Stage, Graphics } from "@inlet/react-pixi";
 import React, { useCallback, useState, useEffect } from "react";
+import useWindowDimensions from "../../src/useWindowDimensions";
 import { palettes } from "../../src/colors";
 
-const HEIGHT_FACTOR = 30;
-const WIDTH_FACTOR = 30;
 const RGBMAX = 255;
 
 function normalize(val, minFrom, maxFrom, minTo) {
@@ -26,17 +25,16 @@ function toColor(val, maxFrom, minFrom, palette) {
 }
 
 function Cell(props) {
-  const { x, y, val, maxFrom, minFrom, palette } = props;
+  const { x, y, val, maxFrom, minFrom, palette, width, height, rows, columns } =
+    props;
+  const xDim = height / columns;
+  const yDim = width / rows;
+
   const draw = useCallback(
     (g) => {
       g.clear();
       g.beginFill(toColor(val, maxFrom, minFrom, palette));
-      g.drawRect(
-        WIDTH_FACTOR * x,
-        HEIGHT_FACTOR * y,
-        HEIGHT_FACTOR,
-        WIDTH_FACTOR
-      );
+      g.drawRect(xDim * x, yDim * y, xDim, yDim);
       g.endFill();
     },
     [props]
@@ -63,13 +61,13 @@ const BoardGraphics = ({ data }) => {
   }, [data]);
 
   const { rows, columns } = data;
-  const stageHeight = rows * HEIGHT_FACTOR;
-  const stageWidth = columns * WIDTH_FACTOR;
+  const { width } = useWindowDimensions();
+  const height = (rows / columns) * width;
 
   return (
     <>
       {mounted && (
-        <Stage width={stageWidth} height={stageHeight}>
+        <Stage width={width} height={height}>
           {data.board.data.map((row, i) => {
             return row.map((item, j) => {
               if (item > maxVal) setMaxVal(item);
@@ -83,6 +81,10 @@ const BoardGraphics = ({ data }) => {
                   palette={palette}
                   maxFrom={maxVal}
                   minFrom={minVal}
+                  width={width}
+                  height={height}
+                  rows={rows}
+                  columns={columns}
                 />
               );
             });

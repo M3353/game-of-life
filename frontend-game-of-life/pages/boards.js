@@ -6,7 +6,8 @@ import BoardsContainer from "../components/BoardsContainer";
 import { Box } from "@mui/system";
 
 export default function Boards() {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState([]);
+  const [mounted, setMounted] = useState(false);
   const url = process.env.NEXT_PUBLIC_VERCEL_URL;
   const ws = useWebSocket({
     socketUrl:
@@ -17,18 +18,23 @@ export default function Boards() {
 
   function fetchData() {
     const endpoint = `${url}/boards`;
-    axios.get(endpoint).then((res) => {
-      setData(res.data);
-    });
+    axios
+      .get(endpoint)
+      .then((res) => {
+        const newData = [...res.data];
+        setData(newData);
+      })
+      .catch((err) => console.error(`Error: ${err}`));
   }
 
   useEffect(() => {
+    setMounted(true);
     fetchData();
   }, []);
 
   return (
     <Box>
-      {data != null && (
+      {data != null && mounted && (
         <BoardsContainer data={data} fetchData={fetchData} ws={ws} />
       )}
     </Box>

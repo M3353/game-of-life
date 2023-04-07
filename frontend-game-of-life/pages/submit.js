@@ -1,22 +1,31 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import axios from "axios";
 
 import UserCanvas from "../components/UserCanvas";
 import UserCanvasOccupied from "../components/UserCanvasOccupied";
 import UserCanvasSubmitButton from "../components/UserCanvasSubmitButton";
 import { FormControl, InputLabel, MenuItem, Select, Box } from "@mui/material";
+import UserEntry from "../components/pixi/UserEntry";
 
 const SIZE = 5;
 
 export default function UserSubmitPage() {
+  const initialEntry = useMemo(() => {
+    const ne = [];
+    for (let i = 0; i < SIZE; i++) {
+      for (let j = 0; j < SIZE; j++) {
+        ne.push(0);
+      }
+    }
+    return ne;
+  }, []);
+
   const [id, setId] = useState("");
   const [data, setData] = useState(null);
   const [board, setBoard] = useState(null);
   const [occupied, setOccupied] = useState(null);
   const [location, setLocation] = useState([]);
-  const [entry, setEntry] = useState(
-    new Array(SIZE).fill(new Array(SIZE).fill(0))
-  );
+  const entry = useRef(initialEntry);
 
   useEffect(() => {
     fetchData();
@@ -31,7 +40,6 @@ export default function UserSubmitPage() {
     const url = process.env.NEXT_PUBLIC_VERCEL_URL;
     const endpoint = `${url}/boards/`;
     axios.get(endpoint).then((res) => {
-      console.log(res);
       setData(res.data);
     });
   }
@@ -87,8 +95,8 @@ export default function UserSubmitPage() {
               </Select>
             </FormControl>
           </Box>
-          <UserCanvas entry={entry} setEntry={setEntry} />
-          {occupied != null && board != null && (
+          {board != null && <UserEntry entry={entry} />}
+          {board != null && occupied != null && (
             <Box>
               <UserCanvasOccupied
                 occupied={occupied}

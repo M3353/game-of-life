@@ -88,7 +88,6 @@ async function updateBoard(req, res) {
       where: { id },
       data: { board: board, occupied: occupied, ready: ready },
     });
-    res.json(updatedBoard);
     res.status(200).send(`Board ${id} incremented successfully.`);
   } catch (e) {
     throw e;

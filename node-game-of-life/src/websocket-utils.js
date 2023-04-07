@@ -87,7 +87,6 @@ async function updateBoardWithIncremented(data) {
 
 async function broadcast(clients) {
   const url = `${process.env.NEXT_PUBLIC_VERCEL_URL}/boards`;
-  console.log(url);
   let incrementedBoards = [];
   await waitInterval(async function () {
     const res = await axios.get(url);
