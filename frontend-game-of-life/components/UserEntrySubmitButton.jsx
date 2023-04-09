@@ -1,24 +1,25 @@
-import react from "react";
 import axios from "axios";
 import { Button } from "@mui/material";
 
-const UserCanvasSubmitButton = ({
-  entry,
-  occupied,
-  board,
-  id,
-  location,
-  fetchData,
-  getBoard,
-}) => {
-  function handleSubmit() {
+import { useGameContext } from "../src/GameContext";
+
+const UserEntrySubmitButton = (props) => {
+  const { id, submission, fetchData, getSelectedData, dimensions, file } =
+    props;
+  const { s3 } = useGameContext();
+
+  async function handleSubmit() {
     const url = process.env.NEXT_PUBLIC_VERCEL_URL;
     const endpoint = `${url}/boards/${id}`;
+    const { board, occupied, entry, location } = submission.current;
+    const { rows, columns } = dimensions.current;
+
     const data = {
       boardOccupied: occupied,
       board,
       entry,
       coords: location,
+      rows,
     };
 
     axios
@@ -29,9 +30,16 @@ const UserCanvasSubmitButton = ({
         },
       })
       .then(({ data }) => {
-        console.log(data);
         fetchData();
       });
+
+    const uploadParams = {
+      Bucket: process.env.NEXT_PUBLIC_S3_BUCKET,
+      Key: file.key,
+      Body: file.img,
+    };
+
+    await s3.upload(uploadParams).promise();
   }
 
   return (
@@ -41,4 +49,4 @@ const UserCanvasSubmitButton = ({
   );
 };
 
-export default UserCanvasSubmitButton;
+export default UserEntrySubmitButton;

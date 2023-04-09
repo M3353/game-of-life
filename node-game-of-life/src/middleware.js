@@ -14,31 +14,30 @@ function foundOne(rowStart, rowEnd, colStart, colEnd, board) {
 
 const createValidBoard = (req, res, next) => {
   const { rows, columns, name } = req.body;
+  const occupiedRows = rows / entrySize;
+  const occupiedCols = columns / entrySize;
   let numOccupied = 0;
 
   // check for empty board
   const board = req.body.board.length
     ? req.body.board
-    : Array.from(Array(rows), () => Array(columns).fill(0));
+    : new Array(rows * columns).fill(0);
   const occupied = req.body.occupied.length
     ? req.body.occupied
-    : Array.from(Array(rows / entrySize), () =>
-        Array(columns / entrySize).fill(0)
-      );
+    : new Array(occupiedRows * occupiedCols).fill(0);
 
   // fill occupied board and count number of occupied slots
   for (let i = 0; i < rows; i += entrySize) {
     for (let j = 0; j < columns; j += entrySize) {
       if (foundOne(i, j, i + entrySize, j + entrySize, board)) {
-        occupied[i][j] = 1;
+        occupied[i * rows + j] = 1;
         numOccupied++;
       }
     }
   }
 
   // set ready to 0 if board is not completely occupied
-  const ready =
-    numOccupied == occupied.length * occupied[0].length ? true : false;
+  const ready = numOccupied == occupiedRows * occupiedCols ? true : false;
 
   // generate unique id ? synchronously
   // const rawData = fs.readFileSync("ids.json");
@@ -66,16 +65,14 @@ const createValidBoard = (req, res, next) => {
 };
 
 function isBoardFull(occupied) {
-  for (let i = 0; i < occupied.length; i++) {
-    for (var j = 0; j < occupied[i].length; j++) {
-      if (occupied[i][j] == 0) return false;
-    }
-  }
+  occupied.every((ele) => {
+    if (ele == 0) return false;
+  });
   return true;
 }
 
 const updateBoardWithUserEntry = (req, res, next) => {
-  const { board, boardOccupied, coords, entry } = req.body;
+  const { board, boardOccupied, coords, entry, rows } = req.body;
 
   const i = coords[0];
   const j = coords[1];
@@ -83,35 +80,29 @@ const updateBoardWithUserEntry = (req, res, next) => {
   const row_offset = entrySize * i;
   const col_offset = entrySize * j;
 
-  const updatedBoard = board.map(function (arr) {
-    return arr.slice();
+  const updatedBoard = board.map((ele) => ele);
+
+  board.forEach((ele, i) => {
+    const r = i / rows;
+    const c = i % rows;
+    updatedBoard[i] =
+      r >= row_offset &&
+      r < row_offset + entrySize &&
+      c >= col_offset &&
+      c < col_offset + entrySize
+        ? entry[i % (entrySize * entrySize)]
+        : ele;
   });
 
-  board.forEach((row, r) => {
-    row.map((e, c) => {
-      updatedBoard[r][c] =
-        r >= row_offset &&
-        r < row_offset + entrySize &&
-        c >= col_offset &&
-        c < col_offset + entrySize
-          ? entry[r % entrySize][c % entrySize]
-          : e;
-    });
-  });
+  const updatedBoardOccupied = boardOccupied.map((ele) => ele);
 
-  const updatedBoardOccupied = boardOccupied.map(function (arr) {
-    return arr.slice();
-  });
-
-  updatedBoardOccupied[i][j] = 1;
+  updatedBoardOccupied[i * (rows / entrySize) + j] = 1;
 
   req.body = {
     board: { data: updatedBoard },
     occupied: { data: updatedBoardOccupied },
     ready: isBoardFull(updatedBoardOccupied),
   };
-
-  console.log("new board", updatedBoard);
 
   next();
 };

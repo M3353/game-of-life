@@ -68,26 +68,24 @@ const BoardGraphics = ({ data }) => {
     <>
       {mounted && (
         <Stage width={width} height={height}>
-          {data.board.data.map((row, i) => {
-            return row.map((item, j) => {
-              if (item > maxVal) setMaxVal(item);
-              if (item < minVal) setMinVal(item);
-              return (
-                <Cell
-                  key={(i + 1) * (j + 1)}
-                  x={j}
-                  y={i}
-                  val={item}
-                  palette={palette}
-                  maxFrom={maxVal}
-                  minFrom={minVal}
-                  width={width}
-                  height={height}
-                  rows={rows}
-                  columns={columns}
-                />
-              );
-            });
+          {data.board.data.map((ele, i) => {
+            if (ele > maxVal) setMaxVal(ele);
+            if (ele < minVal) setMinVal(ele);
+            return (
+              <Cell
+                key={i}
+                x={parseInt(i / rows)}
+                y={i % rows}
+                val={ele}
+                palette={palette}
+                maxFrom={maxVal}
+                minFrom={minVal}
+                width={width}
+                height={height}
+                rows={rows}
+                columns={columns}
+              />
+            );
           })}
         </Stage>
       )}

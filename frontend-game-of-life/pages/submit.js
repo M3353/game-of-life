@@ -1,39 +1,54 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import axios from "axios";
+import {
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Box,
+  Button,
+} from "@mui/material";
 
-import UserCanvas from "../components/UserCanvas";
-import UserCanvasOccupied from "../components/UserCanvasOccupied";
-import UserCanvasSubmitButton from "../components/UserCanvasSubmitButton";
-import { FormControl, InputLabel, MenuItem, Select, Box } from "@mui/material";
+import UserEntrySubmitButton from "../components/UserEntrySubmitButton";
 import UserEntry from "../components/pixi/UserEntry";
+import UserEntryOccupied from "../components/pixi/UserEntryOccupied";
 
 const SIZE = 5;
 
 export default function UserSubmitPage() {
-  const initialEntry = useMemo(() => {
+  const initialSubmission = useMemo(() => {
     const ne = [];
     for (let i = 0; i < SIZE; i++) {
       for (let j = 0; j < SIZE; j++) {
         ne.push(0);
       }
     }
-    return ne;
+    return {
+      entry: ne,
+      location: [],
+      occupied: [],
+      board: [],
+    };
   }, []);
 
   const [id, setId] = useState("");
   const [data, setData] = useState(null);
-  const [board, setBoard] = useState(null);
-  const [occupied, setOccupied] = useState(null);
-  const [location, setLocation] = useState([]);
-  const entry = useRef(initialEntry);
+  const [image, setImage] = useState({
+    img: null,
+    key: "",
+    url: "",
+  });
+
+  // use Ref to avoid rerender on update
+  const submission = useRef(initialSubmission);
+  const dimensions = useRef({});
 
   useEffect(() => {
     fetchData();
   }, []);
 
   useEffect(() => {
-    getBoard(id);
-    getOccupied(id);
+    getSelectedData(id);
   }, [data]);
 
   function fetchData() {
@@ -44,23 +59,16 @@ export default function UserSubmitPage() {
     });
   }
 
-  function getBoard(selectedId) {
+  function getSelectedData(selectedId) {
     if (data != null) {
-      data.every((entry) => {
-        if (entry.id == selectedId) {
-          setBoard(entry.board.data);
-          return;
-        }
-      });
-    }
-  }
-
-  function getOccupied(selectedId) {
-    if (data != null) {
-      data.every((entry) => {
-        if (entry.id == selectedId) {
-          setOccupied(entry.occupied.data);
-          console.log(occupied);
+      data.every((ele) => {
+        if (ele.id == selectedId) {
+          submission.current.board = ele.board.data;
+          submission.current.occupied = ele.occupied.data;
+          dimensions.current = {
+            rows: ele.rows,
+            columns: ele.columns,
+          };
           return;
         }
       });
@@ -71,8 +79,19 @@ export default function UserSubmitPage() {
     const selectedId = event.target.value;
     setId(selectedId);
 
-    getOccupied(selectedId);
-    getBoard(selectedId);
+    getSelectedData(selectedId);
+  };
+
+  const handleUploadImage = (event) => {
+    event.preventDefault();
+    if (event.target.files && event.target.files[0]) {
+      const imgFile = event.target.files[0];
+      setImage({
+        img: imgFile,
+        url: URL.createObjectURL(imgFile),
+        key: imgFile.name,
+      });
+    }
   };
 
   return (
@@ -95,22 +114,36 @@ export default function UserSubmitPage() {
               </Select>
             </FormControl>
           </Box>
-          {board != null && <UserEntry entry={entry} />}
-          {board != null && occupied != null && (
+          {id != "" && <UserEntry submission={submission} />}
+          {id != "" && submission.current.occupied != [] && (
             <Box>
-              <UserCanvasOccupied
-                occupied={occupied}
-                setOccupied={setOccupied}
-                setLocation={setLocation}
+              <UserEntryOccupied
+                submission={submission}
+                dimensions={dimensions}
               />
-              <UserCanvasSubmitButton
-                board={board}
-                occupied={occupied}
-                entry={entry}
+              <Button variant="contained" component="label">
+                Upload Image
+                <input
+                  hidden
+                  accept="image/*"
+                  multiple
+                  type="file"
+                  onChange={handleUploadImage}
+                />
+              </Button>
+              <img
+                alt="preview image"
+                src={image.url}
+                width="400"
+                height="auto"
+              />
+              <UserEntrySubmitButton
                 id={id}
-                location={location}
+                submission={submission}
                 fetchData={fetchData}
-                getBoard={getBoard}
+                getSelectedData={getSelectedData}
+                dimensions={dimensions}
+                file={image}
               />
             </Box>
           )}

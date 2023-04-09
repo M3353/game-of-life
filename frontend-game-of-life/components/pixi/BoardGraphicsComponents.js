@@ -77,13 +77,12 @@ const Lines = ({ data }) => {
             columns={columns}
             rows={rows}
           />
-          {/* {data.board.data.map((row, i) => {
-            return row.map((item, j) => {
+          {/* {data.board.data.map((ele, i) => {
               return (
                 <Line
                   x={j}
                   y={i}
-                  val={item}
+                  val={ele}
                   width={width}
                   height={height}
                   columns={columns}
@@ -91,7 +90,6 @@ const Lines = ({ data }) => {
                   key={(i + 1) * (j + 1)}
                 />
               );
-            });
           })} */}
         </Stage>
       )}

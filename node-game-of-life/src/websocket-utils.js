@@ -19,27 +19,25 @@ const incrementBoardHelper = (entry) => {
     [1, 1],
   ];
 
-  const nc = board.data.length;
-  const nr = board.data[0].length;
+  const incrementedBoard = board.data.map((ele, i) => {
+    let alive = 0;
 
-  const incrementedBoard = board.data.map((row, r) => {
-    return row.map((e, c) => {
-      let alive = 0;
+    const r = i / rows;
+    const c = i / columns;
 
-      // count alive neighbors
-      offsets.forEach((coord) => {
-        const x = coord[0] + c;
-        const y = coord[1] + r;
+    offsets.forEach((coord) => {
+      const x = coord[0] + c;
+      const y = coord[1] + r;
 
-        alive += inBoard(x, y, nr, nc) && board.data[y][x] > 0 ? 1 : 0;
-      });
-
-      return e > 0 && (alive == 2 || alive == 3)
-        ? e + 1
-        : e == 0 && alive == 3
-        ? 1
-        : 0;
+      alive +=
+        inBoard(x, y, rows, columns) && board.data[y * rows + x] > 0 ? 1 : 0;
     });
+
+    return ele > 0 && (alive == 2 || alive == 3)
+      ? ele + 1
+      : ele == 0 && alive == 3
+      ? 1
+      : 0;
   });
 
   return {

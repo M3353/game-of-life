@@ -7,7 +7,7 @@ const COLS = 5;
 const ROWS = 5;
 
 function UserEntryCell(props) {
-  const { x, y, width, height, mouseDown, entry } = props;
+  const { x, y, width, height, mouseDown, submission } = props;
   const xDim = height / COLS;
   const yDim = width / ROWS;
 
@@ -19,8 +19,9 @@ function UserEntryCell(props) {
       g.endFill();
 
       const handleOnMouseDownOver = () => {
-        entry.current[y * ROWS + x] ^= 1;
-        g.tint = entry.current[y * ROWS + x] == 1 ? 0x000000 : 0xffffff;
+        submission.current.entry[y * ROWS + x] ^= 1;
+        g.tint =
+          submission.current.entry[y * ROWS + x] == 1 ? 0x000000 : 0xffffff;
       };
       g.interactive = true;
 
@@ -39,7 +40,8 @@ function UserEntryCell(props) {
   return <Graphics draw={draw} />;
 }
 
-export default function UserEntry({ entry }) {
+export default function UserEntry(props) {
+  const { submission } = props;
   const [mounted, setMounted] = useState(false);
   const mouseDown = useRef(false);
   let { width } = useWindowDimensions();
@@ -57,7 +59,14 @@ export default function UserEntry({ entry }) {
     mouseDown.current = false;
   };
 
-  console.log(entry);
+  const drawBorder = useCallback(
+    (g) => {
+      g.clear();
+      g.lineStyle(5, 0x000000, 1);
+      g.drawRect(0, 0, width, height);
+    },
+    [props]
+  );
 
   return (
     <>
@@ -69,16 +78,18 @@ export default function UserEntry({ entry }) {
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
         >
-          {entry.current.map((e, i) => (
+          {submission.current.entry.map((e, i) => (
             <UserEntryCell
+              key={i}
               x={parseInt(i / ROWS)}
               y={i % ROWS}
               width={width}
               height={height}
               mouseDown={mouseDown}
-              entry={entry}
+              submission={submission}
             />
           ))}
+          <Graphics draw={drawBorder} />
         </Stage>
       )}
     </>
