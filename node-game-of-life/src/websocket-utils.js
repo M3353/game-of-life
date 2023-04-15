@@ -73,7 +73,7 @@ async function waitInterval(callback, ms) {
 }
 
 async function updateBoardWithIncremented(data) {
-  const postURL = `${process.env.NEXT_PUBLIC_VERCEL_URL}/admin`;
+  const postURL = `${process.env.NEXT_PUBLIC_URL}/admin`;
   for (const entry of data) {
     const incrementedBoard = {
       board: entry.board,
@@ -84,7 +84,7 @@ async function updateBoardWithIncremented(data) {
 }
 
 async function broadcast(clients) {
-  const url = `${process.env.NEXT_PUBLIC_VERCEL_URL}/boards`;
+  const url = `${process.env.NEXT_PUBLIC_URL}/boards`;
   let incrementedBoards = [];
   await waitInterval(async function () {
     const res = await axios.get(url);

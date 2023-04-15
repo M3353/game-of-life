@@ -80,18 +80,17 @@ async function getBoardById(req, res) {
 }
 
 async function updateBoard(req, res) {
-  const id = parseInt(req.params.id);
-  const { board, occupied, ready } = req.body;
-
-  try {
-    const updatedBoard = await prisma.board.update({
-      where: { id },
-      data: { board: board, occupied: occupied, ready: ready },
-    });
-    res.status(200).send(`Board ${id} incremented successfully.`);
-  } catch (e) {
-    throw e;
-  }
+  // const id = parseInt(req.params.id);
+  // const { board, occupied, ready } = req.body;
+  // try {
+  //   const updatedBoard = await prisma.board.update({
+  //     where: { id },
+  //     data: { board: board, occupied: occupied, ready: ready },
+  //   });
+  //   res.status(200).send(`Board ${id} incremented successfully.`);
+  // } catch (e) {
+  //   throw e;
+  // }
 }
 
 module.exports = {

@@ -4,10 +4,7 @@ import { Box } from "@mui/system";
 import BoardGraphics from "./pixi/BoardGraphics";
 import { Lines } from "./pixi/BoardGraphicsComponents";
 import { useGameContext } from "../src/GameContext";
-
-function getS3FileURL(key) {
-  return `${process.env.NEXT_PUBLIC_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_REGION}.amazonaws.com/${key}`;
-}
+import { getS3FileURL } from "../utils/utils";
 
 const BoardsContainer = ({ data, fetchData, ws }) => {
   const { s3 } = useGameContext();

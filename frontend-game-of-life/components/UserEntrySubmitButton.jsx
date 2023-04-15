@@ -20,18 +20,8 @@ const UserEntrySubmitButton = (props) => {
       entry,
       coords: location,
       rows,
+      file: file.key,
     };
-
-    axios
-      .put(endpoint, data, {
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json;charset=UTF-8",
-        },
-      })
-      .then(({ data }) => {
-        fetchData();
-      });
 
     const uploadParams = {
       Bucket: process.env.NEXT_PUBLIC_S3_BUCKET,
@@ -39,7 +29,27 @@ const UserEntrySubmitButton = (props) => {
       Body: file.img,
     };
 
-    await s3.upload(uploadParams).promise();
+    try {
+      await s3.upload(uploadParams).promise();
+
+      await axios
+        .put(endpoint, data, {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json;charset=UTF-8",
+          },
+        })
+        .then(({ data }) => {
+          fetchData();
+        })
+        .catch((e) => {
+          if (e.response) console.log(e.response.data);
+          else if (e.request) console.log(e.request);
+          else console.log(e);
+        });
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   return (

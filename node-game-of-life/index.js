@@ -6,6 +6,7 @@ const queries = require("./src/queries");
 const {
   createValidBoard,
   updateBoardWithUserEntry,
+  updateBoardWithUserImage,
 } = require("./src/middleware");
 const { broadcast } = require("./src/websocket-utils");
 const app = express();
@@ -48,7 +49,12 @@ app.get("/", (req, res) => {
 // queries
 app.get("/boards", queries.getBoards);
 app.get("/boards/:id", queries.getBoardById);
-app.put("/boards/:id", updateBoardWithUserEntry, queries.updateBoard);
+app.put(
+  "/boards/:id",
+  updateBoardWithUserImage,
+  updateBoardWithUserEntry,
+  queries.updateBoard
+);
 
 app.post("/admin", queries.incrementBoard);
 app.post("/admin/:id", createValidBoard, queries.createBoard);

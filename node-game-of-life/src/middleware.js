@@ -1,4 +1,23 @@
+const {
+  S3Client,
+  GetObjectCommand,
+  PutObjectCommand,
+} = require("@aws-sdk/client-s3");
+const sharp = require("sharp");
+const { PythonShell } = require("python-shell");
+
+const { kMean, labArrayToRgb } = require("./filters");
 const { minDim, maxDim, entrySize } = require("./data");
+
+const PALETTE_SIZE = 5;
+
+const s3 = new S3Client({
+  region: process.env.REGION,
+  credentials: {
+    secretAccessKey: process.env.SECRET_ACCESS_KEY,
+    accessKeyId: process.env.ACCESS_KEY,
+  },
+});
 
 function foundOne(rowStart, rowEnd, colStart, colEnd, board) {
   // better algorithm is to sort and check the first val, O(nlogn)
@@ -38,18 +57,6 @@ const createValidBoard = (req, res, next) => {
 
   // set ready to 0 if board is not completely occupied
   const ready = numOccupied == occupiedRows * occupiedCols ? true : false;
-
-  // generate unique id ? synchronously
-  // const rawData = fs.readFileSync("ids.json");
-  // const dataString = JSON.parse(rawData);
-  // const id = parseInt(dataString.id);
-
-  // write new id ? asynchronously
-  // const newId = JSON.stringify({ id: id + 1 }, null, 2);
-  // fs.writeFile("ids.json", newId, (err) => {
-  //   if (err) throw err;
-  //   console.log(`new id ${id + 1} written to id file`);
-  // });
 
   // update the request body with valid board values
   req.body = {
@@ -107,7 +114,129 @@ const updateBoardWithUserEntry = (req, res, next) => {
   next();
 };
 
+async function getS3Stream(res) {
+  try {
+    const chunks = [];
+
+    for await (const chunk of res) {
+      chunks.push(chunk);
+    }
+
+    return Buffer.concat(chunks);
+  } catch (err) {
+    console.error("Error while downloading object from S3", err.message);
+    throw err;
+  }
+}
+
+async function applyFilter(data, info) {
+  const image = new Float32Array(data.buffer);
+  const { width, height, channels, size } = info;
+
+  const clusters = kMean(image, info, PALETTE_SIZE);
+
+  clusters.forEach((cluster) => {
+    cluster.points.forEach((i) => {
+      image[i] = cluster.centroid.l;
+      image[i + 1] = cluster.centroid.a;
+      image[i + 2] = cluster.centroid.b;
+    });
+  });
+  return image;
+}
+
+async function getImage(file) {
+  const params = {
+    Bucket: process.env.S3_BUCKET,
+    Key: file,
+  };
+
+  try {
+    const imageFromS3 = (await s3.send(new GetObjectCommand(params))).Body;
+    return imageFromS3;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+async function putImage(img, file) {
+  const putParams = {
+    Bucket: process.env.S3_BUCKET,
+    Key: file,
+    Body: img,
+    ContentType: "image/png",
+    ContentLength: img.length,
+  };
+
+  try {
+    const response = await s3.send(new PutObjectCommand(putParams));
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+async function updateBoardWithUserImage(req, res, next) {
+  const { file } = req.body;
+
+  const pythonShellOptions = {
+    pythonOptions: ["-u"],
+    pythonPath: "/Users/jackli/.pyenv/versions/3.10.11/bin/python/",
+    args: [
+      file,
+      process.env.S3_BUCKET,
+      process.env.ACCESS_KEY,
+      process.env.SECRET_ACCESS_KEY,
+    ],
+  };
+
+  await PythonShell.run(
+    "background-remover/remove.py",
+    pythonShellOptions
+  ).then((results) => {
+    console.log(results);
+  });
+
+  // get image from s3 and convert to byte stream
+  const imageFromS3 = await getImage(file);
+  const s3Stream = await getS3Stream(imageFromS3);
+
+  // resize and blur image using sharp
+  const { data, info } = await sharp(s3Stream)
+    .resize({ fit: sharp.fit.contain, width: 400 })
+    .modulate({
+      saturation: 3,
+    })
+    .gamma()
+    .trim()
+    .median()
+    .toColorspace("lab")
+    .raw({ depth: "float" })
+    .toBuffer({ resolveWithObject: true });
+
+  // manually process image
+  const pixelArray = await applyFilter(data, info);
+
+  const rgbPixelArray = await labArrayToRgb(pixelArray, info.channels);
+
+  // convert raw data to buffer
+  const { width, height, channels } = info;
+
+  const imageToS3 = await sharp(rgbPixelArray, {
+    raw: { width, height, channels },
+  })
+    .toFormat("png")
+    .toBuffer();
+
+  // put image to s3
+  await putImage(imageToS3, file);
+
+  next();
+}
+
 module.exports = {
   createValidBoard,
   updateBoardWithUserEntry,
+  updateBoardWithUserImage,
 };
