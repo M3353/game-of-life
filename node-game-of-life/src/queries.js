@@ -2,7 +2,8 @@ const prisma = require("./prisma");
 require("dotenv").config();
 
 async function createBoard(req, res) {
-  const { name, rows, columns, board, occupied, ready } = req.body;
+  const { name, rows, columns, board, occupied, ready, highDensityRegions } =
+    req.body;
 
   try {
     const newBoard = await prisma.board.create({
@@ -13,6 +14,7 @@ async function createBoard(req, res) {
         rows: rows,
         columns: columns,
         ready: ready,
+        highDensityRegions,
       },
     });
     console.log(newBoard);
@@ -38,12 +40,12 @@ async function deleteBoard(req, res) {
 }
 
 async function incrementBoard(req, res) {
-  const { board, id } = req.body;
+  const { board, id, highDensityRegions } = req.body;
 
   try {
     await prisma.board.update({
       where: { id },
-      data: { board: board },
+      data: { board, highDensityRegions },
     });
     res.status(200).send(`Board ${id} incremented successfully.`);
   } catch (e) {
@@ -80,17 +82,17 @@ async function getBoardById(req, res) {
 }
 
 async function updateBoard(req, res) {
-  // const id = parseInt(req.params.id);
-  // const { board, occupied, ready } = req.body;
-  // try {
-  //   const updatedBoard = await prisma.board.update({
-  //     where: { id },
-  //     data: { board: board, occupied: occupied, ready: ready },
-  //   });
-  //   res.status(200).send(`Board ${id} incremented successfully.`);
-  // } catch (e) {
-  //   throw e;
-  // }
+  const id = parseInt(req.params.id);
+  const { board, occupied, ready } = req.body;
+  try {
+    const updatedBoard = await prisma.board.update({
+      where: { id },
+      data: { board: board, occupied: occupied, ready: ready },
+    });
+    res.status(200).send(`Board ${id} incremented successfully.`);
+  } catch (e) {
+    throw e;
+  }
 }
 
 module.exports = {

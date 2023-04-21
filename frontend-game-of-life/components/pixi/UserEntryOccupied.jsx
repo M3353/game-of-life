@@ -9,8 +9,8 @@ function UserEntryOccupiedCell(props) {
   const { x, y, height, width, rows, columns, submission, setLocation, val } =
     props;
 
-  const xDim = height / columns;
-  const yDim = width / rows;
+  const xDim = width / columns;
+  const yDim = height / rows;
   const location = submission.current.location;
   const fillVal =
     val == 1 || (location.length == 2 && x == location[0] && y == location[1])
@@ -82,8 +82,8 @@ export default function UserEntryOccupied(props) {
                   key={i}
                   submission={submission}
                   setLocation={handleUpdateLocation}
-                  x={parseInt(i / rows)}
-                  y={i % rows}
+                  x={parseInt(i / columns)}
+                  y={i % columns}
                   height={height}
                   width={width}
                   columns={columns}

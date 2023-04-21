@@ -1,23 +1,9 @@
-const {
-  S3Client,
-  GetObjectCommand,
-  PutObjectCommand,
-} = require("@aws-sdk/client-s3");
 const sharp = require("sharp");
 const { PythonShell } = require("python-shell");
 
 const { kMean, labArrayToRgb } = require("./filters");
-const { minDim, maxDim, entrySize } = require("./data");
-
-const PALETTE_SIZE = 5;
-
-const s3 = new S3Client({
-  region: process.env.REGION,
-  credentials: {
-    secretAccessKey: process.env.SECRET_ACCESS_KEY,
-    accessKeyId: process.env.ACCESS_KEY,
-  },
-});
+const { getImage, putImage } = require("./client");
+const { ENTRY_SIZE, PALETTE_SIZE } = require("./data");
 
 function foundOne(rowStart, rowEnd, colStart, colEnd, board) {
   // better algorithm is to sort and check the first val, O(nlogn)
@@ -33,8 +19,8 @@ function foundOne(rowStart, rowEnd, colStart, colEnd, board) {
 
 const createValidBoard = (req, res, next) => {
   const { rows, columns, name } = req.body;
-  const occupiedRows = rows / entrySize;
-  const occupiedCols = columns / entrySize;
+  const occupiedRows = rows / ENTRY_SIZE;
+  const occupiedCols = columns / ENTRY_SIZE;
   let numOccupied = 0;
 
   // check for empty board
@@ -46,9 +32,9 @@ const createValidBoard = (req, res, next) => {
     : new Array(occupiedRows * occupiedCols).fill(0);
 
   // fill occupied board and count number of occupied slots
-  for (let i = 0; i < rows; i += entrySize) {
-    for (let j = 0; j < columns; j += entrySize) {
-      if (foundOne(i, j, i + entrySize, j + entrySize, board)) {
+  for (let i = 0; i < rows; i += ENTRY_SIZE) {
+    for (let j = 0; j < columns; j += ENTRY_SIZE) {
+      if (foundOne(i, j, i + ENTRY_SIZE, j + ENTRY_SIZE, board)) {
         occupied[i * rows + j] = 1;
         numOccupied++;
       }
@@ -62,6 +48,7 @@ const createValidBoard = (req, res, next) => {
   req.body = {
     board: { data: board },
     occupied: { data: occupied },
+    highDensityRegions: {},
     rows,
     columns,
     ready,
@@ -71,44 +58,37 @@ const createValidBoard = (req, res, next) => {
   next();
 };
 
-function isBoardFull(occupied) {
-  occupied.every((ele) => {
-    if (ele == 0) return false;
-  });
-  return true;
-}
-
 const updateBoardWithUserEntry = (req, res, next) => {
-  const { board, boardOccupied, coords, entry, rows } = req.body;
+  const { board, boardOccupied, coords, entry, columns } = req.body;
 
   const i = coords[0];
   const j = coords[1];
 
-  const row_offset = entrySize * i;
-  const col_offset = entrySize * j;
+  const row_offset = ENTRY_SIZE * i;
+  const col_offset = ENTRY_SIZE * j;
 
   const updatedBoard = board.map((ele) => ele);
 
   board.forEach((ele, i) => {
-    const r = i / rows;
-    const c = i % rows;
+    const r = i / columns;
+    const c = i % columns;
     updatedBoard[i] =
       r >= row_offset &&
-      r < row_offset + entrySize &&
+      r < row_offset + ENTRY_SIZE &&
       c >= col_offset &&
-      c < col_offset + entrySize
-        ? entry[i % (entrySize * entrySize)]
+      c < col_offset + ENTRY_SIZE
+        ? entry[i % (ENTRY_SIZE * ENTRY_SIZE)]
         : ele;
   });
 
   const updatedBoardOccupied = boardOccupied.map((ele) => ele);
 
-  updatedBoardOccupied[i * (rows / entrySize) + j] = 1;
+  updatedBoardOccupied[i * (columns / ENTRY_SIZE) + j] = 1;
 
   req.body = {
     board: { data: updatedBoard },
     occupied: { data: updatedBoardOccupied },
-    ready: isBoardFull(updatedBoardOccupied),
+    ready: updatedBoardOccupied.every((ele) => ele != 0),
   };
 
   next();
@@ -143,38 +123,6 @@ async function applyFilter(data, info) {
     });
   });
   return image;
-}
-
-async function getImage(file) {
-  const params = {
-    Bucket: process.env.S3_BUCKET,
-    Key: file,
-  };
-
-  try {
-    const imageFromS3 = (await s3.send(new GetObjectCommand(params))).Body;
-    return imageFromS3;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-}
-
-async function putImage(img, file) {
-  const putParams = {
-    Bucket: process.env.S3_BUCKET,
-    Key: file,
-    Body: img,
-    ContentType: "image/png",
-    ContentLength: img.length,
-  };
-
-  try {
-    const response = await s3.send(new PutObjectCommand(putParams));
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
 }
 
 async function updateBoardWithUserImage(req, res, next) {

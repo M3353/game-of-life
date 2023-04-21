@@ -11,11 +11,12 @@ datasource db {
 }
 
 model Board {
-  id        Int           @id @default(autoincrement())
-  name      String        @db.VarChar(32)
-  board     Json
-  occupied  Json
-  rows      Int           @db.SmallInt
-  columns   Int           @db.SmallInt
-  ready     Boolean?
+  id                  Int           @id @default(autoincrement())
+  name                String        @db.VarChar(32)
+  board               Json
+  occupied            Json
+  highDensityRegions  Json  
+  rows                Int           @db.SmallInt
+  columns             Int           @db.SmallInt
+  ready               Boolean?
 }

@@ -1,60 +1,13 @@
-import {
-  Stage,
-  Container,
-  AnimatedSprite,
-  useApp,
-  useTick,
-  PixiComponent,
-  Graphics,
-  SimpleRope,
-} from "@inlet/react-pixi";
+import React, { useState, useCallback, useEffect } from "react";
+import { Graphics, Sprite } from "@inlet/react-pixi";
 
-import * as PIXI from "pixi.js";
+const RGBMAX = 255;
 
-import { useState, useCallback, useEffect } from "react";
-import useWindowDimensions from "../../src/useWindowDimensions";
+const GameOfLifeImages = (props) => {
+  const { data, imageUrls, xDim, yDim } = props;
+  const { columns, highDensityRegions } = data;
 
-const MAX_POINTS = 10;
-
-function Line(props) {
-  const { x, y, val, width, height, rows, columns } = props;
-
-  const xDim = height / columns;
-  const yDim = width / rows;
-  const p = { x: xDim * x + xDim / 2, y: yDim * y + yDim / 2 };
-
-  const sprite = PIXI.Sprite.from("pixijs.io/examples/assets/bg_rotate.jpg");
-
-  const draw = useCallback((g) => {
-    g.clear();
-
-    const xCell = Math.floor(Math.random() * rows);
-    const yCell = Math.floor(Math.random() * columns);
-    const xOffset = Math.random() * xDim;
-    const yOffset = Math.random() * yDim;
-
-    g.lineStyle(5, 0xaa0000, 1);
-    g.bezierCurveTo(
-      width * Math.random(),
-      height * Math.random(),
-      width * Math.random(),
-      height * Math.random(),
-      xCell * xDim - p.x - xOffset,
-      yCell * yDim - p.y - yOffset
-    );
-    g.position.x = p.x + xOffset;
-    g.position.y = p.y + yOffset;
-  });
-
-  return <Graphics draw={draw} />;
-}
-
-const Lines = ({ data }) => {
   const [mounted, setMounted] = useState(false);
-
-  const { rows, columns } = data;
-  const { width } = useWindowDimensions();
-  const height = (rows / columns) * width;
 
   useEffect(() => {
     setMounted(true);
@@ -62,41 +15,104 @@ const Lines = ({ data }) => {
 
   return (
     <>
-      {mounted && (
-        <Stage
-          width={width}
-          height={height}
-          options={{ backgroundColor: 0xeef1f5, antialias: true }}
-        >
-          <Line
-            x={5}
-            y={5}
-            val={10}
-            width={width}
-            height={height}
-            columns={columns}
-            rows={rows}
-          />
-          {/* {data.board.data.map((ele, i) => {
-              return (
-                <Line
-                  x={j}
-                  y={i}
-                  val={ele}
-                  width={width}
-                  height={height}
-                  columns={columns}
-                  rows={rows}
-                  key={(i + 1) * (j + 1)}
-                />
-              );
-          })} */}
-        </Stage>
-      )}
+      {mounted &&
+        imageUrls.map((ele, i) => {
+          const { idx } = highDensityRegions.data[i];
+          const x = idx / columns;
+          const y = idx % columns;
+          return (
+            <Sprite
+              image={ele.url}
+              scale={{ x: 1, y: 1 }}
+              anchor={0.5}
+              x={x * xDim}
+              y={y * yDim}
+              alpha={0.8}
+            />
+          );
+        })}
+    </>
+  );
+};
+
+function normalize(val, minFrom, maxFrom, minTo) {
+  return ((val - minFrom) / (maxFrom - minFrom)) * (RGBMAX - minTo) + minTo;
+}
+
+function valueToHex(val) {
+  return (val & 0x00ffffff).toString(16);
+}
+
+function rgbToHex(r, g, b) {
+  return valueToHex(r) + valueToHex(g) + valueToHex(b);
+}
+
+function toColor(val, maxFrom, minFrom, palette) {
+  const { r, g, b } = palette;
+  const normalized = normalize(val, minFrom, maxFrom, r);
+  const hexColor = rgbToHex(normalized, g, b);
+  return "0x" + hexColor.padStart(6, "0");
+}
+
+function Cell(props) {
+  const { x, y, val, maxFrom, minFrom, palette, xDim, yDim } = props;
+
+  const draw = useCallback(
+    (g) => {
+      g.clear();
+      g.beginFill(toColor(val, maxFrom, minFrom, palette));
+      g.drawRect(xDim * x, yDim * y, xDim, yDim);
+      g.endFill();
+    },
+    [props]
+  );
+
+  return <Graphics draw={draw} />;
+}
+
+const GameOfLifeGrid = (props) => {
+  const { data, palette, xDim, yDim } = props;
+  const { columns, board } = data;
+
+  const [mounted, setMounted] = useState(false);
+  const [maxVal, setMaxVal] = useState();
+  const [minVal, setMinVal] = useState();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // reset maxVal on rerender
+  useEffect(() => {
+    setMaxVal(0);
+    setMinVal(Number.MAX_SAFE_INTEGER);
+  }, [data]);
+
+  return (
+    <>
+      {mounted &&
+        board.data.map((ele, i) => {
+          if (ele > maxVal) setMaxVal(ele);
+          if (ele < minVal) setMinVal(ele);
+          return (
+            <Cell
+              key={i}
+              x={parseInt(i / columns)}
+              y={i % columns}
+              val={ele}
+              palette={palette}
+              maxFrom={maxVal}
+              minFrom={minVal}
+              xDim={xDim}
+              yDim={yDim}
+            />
+          );
+        })}
     </>
   );
 };
 
 module.exports = {
-  Lines,
+  GameOfLifeGrid,
+  GameOfLifeImages,
 };

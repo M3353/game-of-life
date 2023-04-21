@@ -8,8 +8,8 @@ const ROWS = 5;
 
 function UserEntryCell(props) {
   const { x, y, width, height, mouseDown, submission } = props;
-  const xDim = height / COLS;
-  const yDim = width / ROWS;
+  const xDim = width / COLS;
+  const yDim = height / ROWS;
 
   const draw = useCallback(
     (g) => {
@@ -81,8 +81,8 @@ export default function UserEntry(props) {
           {submission.current.entry.map((e, i) => (
             <UserEntryCell
               key={i}
-              x={parseInt(i / ROWS)}
-              y={i % ROWS}
+              x={parseInt(i / COLS)}
+              y={i % COLS}
               width={width}
               height={height}
               mouseDown={mouseDown}

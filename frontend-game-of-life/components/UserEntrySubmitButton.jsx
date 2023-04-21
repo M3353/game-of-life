@@ -30,7 +30,7 @@ const UserEntrySubmitButton = (props) => {
     };
 
     try {
-      await s3.upload(uploadParams).promise();
+      // await s3.upload(uploadParams).promise();
 
       await axios
         .put(endpoint, data, {

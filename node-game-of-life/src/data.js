@@ -1,9 +1,7 @@
-const minDim = 5;
-const maxDim = 100;
-const entrySize = 5;
-
 module.exports = {
-  minDim,
-  maxDim,
-  entrySize,
+  MIN_DIM = 5,
+  MAX_DIM = 30,
+  ENTRY_SIZE = 5,
+  PALETTE_SIZE = 5,
+  EPS = 0.001,
 };

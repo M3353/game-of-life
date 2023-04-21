@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box } from "@mui/system";
 
 import BoardGraphics from "./pixi/BoardGraphics";
-import { Lines } from "./pixi/BoardGraphicsComponents";
+import { MovingImages } from "./pixi/BoardGraphicsComponents";
 import { useGameContext } from "../src/GameContext";
 import { getS3FileURL } from "../utils/utils";
 
@@ -31,7 +31,7 @@ const BoardsContainer = ({ data, fetchData, ws }) => {
         const imageData = Contents.map((file) => {
           return {
             url: getS3FileURL(file.Key),
-            size: file.size,
+            size: file.Size,
           };
         });
         setImageUrls(imageData);
@@ -46,8 +46,7 @@ const BoardsContainer = ({ data, fetchData, ws }) => {
           entry.ready && (
             <Box sx={{ display: "flex", flexDirection: "column" }} key={i}>
               <div>{entry.name}</div>
-              <Lines data={entry} />
-              <BoardGraphics data={entry} />
+              <BoardGraphics data={entry} imageUrls={imageUrls} />
             </Box>
           )
       )}
