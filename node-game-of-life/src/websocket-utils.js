@@ -1,6 +1,6 @@
 require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
 const axios = require("axios");
-const { dataSize, entrySize } = require("./data");
+const { ENTRY_SIZE } = require("./data");
 
 const inBoard = (x, y, nr, nc) => {
   return x >= 0 && y >= 0 && x < nc && y < nr;
@@ -56,7 +56,7 @@ const getHighDensityRegions = (entry) => {
   const { board, rows, columns, name, id, occupied, ready } = entry;
   const highDensityRegions = [];
 
-  const regionSize = entrySize - 2;
+  const regionSize = ENTRY_SIZE - 2;
 
   // snakewise pass
   for (

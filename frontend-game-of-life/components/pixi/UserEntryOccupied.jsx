@@ -23,7 +23,6 @@ function UserEntryOccupiedCell(props) {
       g.beginFill(fillVal, 1);
       g.drawRect(x * xDim, y * yDim, xDim, yDim);
       g.endFill();
-
       g.interactive = true;
       g.on("click", (e) => {
         if (val == 0) {
@@ -45,9 +44,9 @@ export default function UserEntryOccupied(props) {
   const [mounted, setMounted] = useState(false);
   const [rerender, setRerender] = useState(false);
 
-  let { width } = useWindowDimensions();
-  width *= 0.5;
-  const height = (rows / columns) * width;
+  let { height } = useWindowDimensions();
+  height *= 0.5;
+  const width = (columns / rows) * height;
 
   useEffect(() => {
     setMounted(true);
@@ -82,8 +81,8 @@ export default function UserEntryOccupied(props) {
                   key={i}
                   submission={submission}
                   setLocation={handleUpdateLocation}
-                  x={parseInt(i / columns)}
-                  y={i % columns}
+                  x={i % columns}
+                  y={parseInt(i / columns)}
                   height={height}
                   width={width}
                   columns={columns}

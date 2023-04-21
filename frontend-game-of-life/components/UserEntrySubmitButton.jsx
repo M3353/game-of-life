@@ -20,6 +20,7 @@ const UserEntrySubmitButton = (props) => {
       entry,
       coords: location,
       rows,
+      columns,
       file: file.key,
     };
 

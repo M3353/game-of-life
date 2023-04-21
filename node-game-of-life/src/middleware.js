@@ -2,7 +2,7 @@ const sharp = require("sharp");
 const { PythonShell } = require("python-shell");
 
 const { kMean, labArrayToRgb } = require("./filters");
-const { getImage, putImage } = require("./client");
+const { getImage, putImage } = require("./s3_client");
 const { ENTRY_SIZE, PALETTE_SIZE } = require("./data");
 
 function foundOne(rowStart, rowEnd, colStart, colEnd, board) {
@@ -18,24 +18,22 @@ function foundOne(rowStart, rowEnd, colStart, colEnd, board) {
 }
 
 const createValidBoard = (req, res, next) => {
-  const { rows, columns, name } = req.body;
+  const { rows, columns, name, board, occupied } = req.body;
   const occupiedRows = rows / ENTRY_SIZE;
   const occupiedCols = columns / ENTRY_SIZE;
   let numOccupied = 0;
 
   // check for empty board
-  const board = req.body.board.length
-    ? req.body.board
-    : new Array(rows * columns).fill(0);
-  const occupied = req.body.occupied.length
-    ? req.body.occupied
+  const _board = board.data.length ? board : new Array(rows * columns).fill(0);
+  const _occupied = occupied.data.length
+    ? occupied
     : new Array(occupiedRows * occupiedCols).fill(0);
 
   // fill occupied board and count number of occupied slots
   for (let i = 0; i < rows; i += ENTRY_SIZE) {
     for (let j = 0; j < columns; j += ENTRY_SIZE) {
-      if (foundOne(i, j, i + ENTRY_SIZE, j + ENTRY_SIZE, board)) {
-        occupied[i * rows + j] = 1;
+      if (foundOne(i, j, i + ENTRY_SIZE, j + ENTRY_SIZE, _board)) {
+        _occupied[i * rows + j] = 1;
         numOccupied++;
       }
     }
@@ -46,8 +44,8 @@ const createValidBoard = (req, res, next) => {
 
   // update the request body with valid board values
   req.body = {
-    board: { data: board },
-    occupied: { data: occupied },
+    board: { data: _board },
+    occupied: { data: _occupied },
     highDensityRegions: {},
     rows,
     columns,
@@ -61,11 +59,11 @@ const createValidBoard = (req, res, next) => {
 const updateBoardWithUserEntry = (req, res, next) => {
   const { board, boardOccupied, coords, entry, columns } = req.body;
 
-  const i = coords[0];
-  const j = coords[1];
+  const x = coords[0];
+  const y = coords[1];
 
-  const row_offset = ENTRY_SIZE * i;
-  const col_offset = ENTRY_SIZE * j;
+  const row_offset = ENTRY_SIZE * y;
+  const col_offset = ENTRY_SIZE * x;
 
   const updatedBoard = board.map((ele) => ele);
 
@@ -82,8 +80,7 @@ const updateBoardWithUserEntry = (req, res, next) => {
   });
 
   const updatedBoardOccupied = boardOccupied.map((ele) => ele);
-
-  updatedBoardOccupied[i * (columns / ENTRY_SIZE) + j] = 1;
+  updatedBoardOccupied[y * parseInt(columns / ENTRY_SIZE) + x] = 1;
 
   req.body = {
     board: { data: updatedBoard },
@@ -93,21 +90,6 @@ const updateBoardWithUserEntry = (req, res, next) => {
 
   next();
 };
-
-async function getS3Stream(res) {
-  try {
-    const chunks = [];
-
-    for await (const chunk of res) {
-      chunks.push(chunk);
-    }
-
-    return Buffer.concat(chunks);
-  } catch (err) {
-    console.error("Error while downloading object from S3", err.message);
-    throw err;
-  }
-}
 
 async function applyFilter(data, info) {
   const image = new Float32Array(data.buffer);
@@ -148,10 +130,9 @@ async function updateBoardWithUserImage(req, res, next) {
 
   // get image from s3 and convert to byte stream
   const imageFromS3 = await getImage(file);
-  const s3Stream = await getS3Stream(imageFromS3);
 
   // resize and blur image using sharp
-  const { data, info } = await sharp(s3Stream)
+  const { data, info } = await sharp(imageFromS3)
     .resize({ fit: sharp.fit.contain, width: 400 })
     .modulate({
       saturation: 3,

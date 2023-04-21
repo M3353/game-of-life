@@ -97,8 +97,8 @@ const GameOfLifeGrid = (props) => {
           return (
             <Cell
               key={i}
-              x={parseInt(i / columns)}
-              y={i % columns}
+              x={i % columns}
+              y={parseInt(i / columns)}
               val={ele}
               palette={palette}
               maxFrom={maxVal}

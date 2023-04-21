@@ -44,9 +44,8 @@ export default function UserEntry(props) {
   const { submission } = props;
   const [mounted, setMounted] = useState(false);
   const mouseDown = useRef(false);
-  let { width } = useWindowDimensions();
-  width *= 0.8;
-  const height = (ROWS / COLS) * width;
+  let { height } = useWindowDimensions();
+  const width = (COLS / ROWS) * height;
 
   useEffect(() => {
     setMounted(true);
@@ -81,8 +80,8 @@ export default function UserEntry(props) {
           {submission.current.entry.map((e, i) => (
             <UserEntryCell
               key={i}
-              x={parseInt(i / COLS)}
-              y={i % COLS}
+              y={parseInt(i / COLS)}
+              x={i % COLS}
               width={width}
               height={height}
               mouseDown={mouseDown}

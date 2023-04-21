@@ -15,7 +15,8 @@ const BoardGraphics = (props) => {
   }, []);
 
   const { rows, columns } = data;
-  const { height } = useWindowDimensions();
+  let { height } = useWindowDimensions();
+  height *= 0.85;
   const width = (columns / rows) * height;
   const xDim = width / columns;
   const yDim = height / rows;
