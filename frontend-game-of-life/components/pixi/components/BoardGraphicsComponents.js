@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { Graphics, Sprite } from "@inlet/react-pixi";
-
-const RGBMAX = 255;
+import { toColor } from "./utils";
 
 const GameOfLifeImages = (props) => {
   const { data, imageUrls, xDim, yDim } = props;
@@ -16,43 +15,26 @@ const GameOfLifeImages = (props) => {
   return (
     <>
       {mounted &&
-        imageUrls.map((ele, i) => {
-          const { idx } = highDensityRegions.data[i];
-          const x = idx / columns;
-          const y = idx % columns;
+        imageUrls !== undefined &&
+        highDensityRegions.data.map((val, i) => {
+          const { idx } = val;
+          const image = imageUrls[i % imageUrls.length];
+          const x = idx % columns;
+          const y = parseInt(idx / columns);
           return (
             <Sprite
-              image={ele.url}
+              image={image.url}
               scale={{ x: 1, y: 1 }}
               anchor={0.5}
               x={x * xDim}
               y={y * yDim}
-              alpha={0.8}
+              alpha={0.4}
             />
           );
         })}
     </>
   );
 };
-
-function normalize(val, minFrom, maxFrom, minTo) {
-  return ((val - minFrom) / (maxFrom - minFrom)) * (RGBMAX - minTo) + minTo;
-}
-
-function valueToHex(val) {
-  return (val & 0x00ffffff).toString(16);
-}
-
-function rgbToHex(r, g, b) {
-  return valueToHex(r) + valueToHex(g) + valueToHex(b);
-}
-
-function toColor(val, maxFrom, minFrom, palette) {
-  const { r, g, b } = palette;
-  const normalized = normalize(val, minFrom, maxFrom, r);
-  const hexColor = rgbToHex(normalized, g, b);
-  return "0x" + hexColor.padStart(6, "0");
-}
 
 function Cell(props) {
   const { x, y, val, maxFrom, minFrom, palette, xDim, yDim } = props;

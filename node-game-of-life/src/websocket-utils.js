@@ -52,70 +52,153 @@ const incrementBoardHelper = (entry) => {
   };
 };
 
-const getHighDensityRegions = (entry) => {
-  const { board, rows, columns, name, id, occupied, ready } = entry;
-  const highDensityRegions = [];
+const incrementAllBoards = (boards) => {
+  const incrementedBoards = boards.map((entry) =>
+    // increment board only when ready
+    entry.ready ? incrementBoardHelper(entry) : entry
+  );
+  return incrementedBoards;
+};
 
-  const regionSize = ENTRY_SIZE - 2;
-
-  // snakewise pass
-  for (
-    let i = parseInt(regionSize / 2);
-    i < rows - parseInt(regionSize / 2);
-    i++
-  ) {
-    // handle first case
-    if (highDensityRegions.length == 0) {
-      let sum = 0;
-      for (let x = 0; x < regionSize; x++) {
-        for (let y = 0; y < regionSize; y++) {
-          sum += board.data[x * columns + y];
-        }
-      }
-      highDensityRegions.push({
-        sum,
-        idx: parseInt(((regionSize / 2) * regionSize) / 2),
-      });
-    }
-
-    let sum = highDensityRegions[highDensityRegions.length - 1].sum;
-
-    // handle snake wise turn case.
-    if (i != parseInt(regionSize / 2)) {
-      let start = i % 2 == 0 ? parseInt(regionSize / 2) : columns - regionSize;
-      const end = start + regionSize;
-      for (let k = start; k < end; k++) {
-        sum -= board.data[i + columns * k];
-        sum += board.data[i + regionSize - 1 + columns * k];
-      }
-    }
-
-    let left = 0,
-      right = 0;
-    for (
-      let j = parseInt(regionSize / 2);
-      j < columns - parseInt(regionSize / 2);
-      j++
-    ) {
-      for (let k = 0; k < regionSize; k++) {
-        left += board.data[i + k + columns * (j - parseInt(regionSize / 2))];
-        right +=
-          board.data[i + k + columns * (j + parseInt(regionSize / 2)) - 1];
-      }
-
-      sum = i % 2 == 0 ? sum + right - left : sum + left - right;
-
-      highDensityRegions.push({ sum, idx: i + columns * j });
+const getSumFirstRegion = (regionSize, entry) => {
+  const { board, columns } = entry;
+  let sum = 0;
+  for (let y = 0; y < regionSize; y++) {
+    for (let x = 0; x < regionSize; x++) {
+      const idx = y * columns + x;
+      sum += board.data[idx];
     }
   }
+  return sum;
+};
 
-  // filter to occupied.length
-  highDensityRegions.sort((a, b) => a.sum - b.sum);
+const getSumSnakewiseTurnRegion = (
+  regionSize,
+  entry,
+  increment,
+  prevSum,
+  i
+) => {
+  const { board, columns } = entry;
+  const radius = parseInt(regionSize / 2);
+  let sum = prevSum;
+  let start = i % 2 == 0 ? 0 : columns - regionSize;
+  const end = start + regionSize;
+  for (let k = start; k < end; k++) {
+    for (let l = 0; l <= radius; l++) {
+      const topIdx = (i - increment - l) * columns + k;
+      const bottomIdx = (i + l) * columns + k;
+      sum -= board.data[topIdx];
+      sum += board.data[bottomIdx];
+    }
+  }
+  return sum;
+};
+
+const getSumSnakewiseIterateRegion = (
+  radius,
+  entry,
+  increment,
+  prevSum,
+  i,
+  j
+) => {
+  const { board, columns } = entry;
+  let sum = prevSum;
+  for (let k = -radius; k < radius; k++) {
+    for (let l = 0; l <= radius; l++) {
+      const leftIdx = (i + k) * columns + (j - increment - l);
+      const rightIdx = (i + k) * columns + (j + l);
+      sum = i % 2 === 0 ? sum - board.data[leftIdx] : sum + board.data[leftIdx];
+      sum =
+        i % 2 === 0 ? sum + board.data[rightIdx] : sum - board.data[rightIdx];
+    }
+  }
+  return sum;
+};
+
+const getHighDensityRegions = (entry) => {
+  const { board, rows, columns, name, id, occupied, ready } = entry;
+  let highDensityRegions = [];
+
+  const regionSize = ENTRY_SIZE;
+  const radius = parseInt(regionSize / 2);
+  const increment = 2;
+
+  let incrementedRow = false;
+  // snakewise pass
+  for (let i = radius; i < rows - radius; i += increment) {
+    // handle first case
+    let j = radius;
+    if (highDensityRegions.length == 0) {
+      const sum = getSumFirstRegion(regionSize, entry);
+      highDensityRegions.push({
+        sum,
+        idx: radius * columns + radius,
+      });
+      j += increment;
+    }
+
+    let prevSum = highDensityRegions[highDensityRegions.length - 1].sum;
+    let sum;
+
+    if (i % 2 == 0) {
+      for (; j < columns - radius; j += increment) {
+        if (incrementedRow) {
+          incrementedRow = false;
+          sum = getSumSnakewiseTurnRegion(
+            regionSize,
+            entry,
+            increment,
+            prevSum,
+            i
+          );
+        } else {
+          sum = getSumSnakewiseIterateRegion(
+            radius,
+            entry,
+            increment,
+            prevSum,
+            i,
+            j
+          );
+        }
+        highDensityRegions.push({ sum, idx: i * columns + j });
+      }
+    } else {
+      for (let j = columns - radius; j >= radius; j -= increment) {
+        if (incrementedRow) {
+          incrementedRow = false;
+          sum = getSumSnakewiseTurnRegion(
+            regionSize,
+            entry,
+            increment,
+            prevSum,
+            i
+          );
+        } else {
+          sum = getSumSnakewiseIterateRegion(
+            radius,
+            entry,
+            increment,
+            prevSum,
+            i,
+            j
+          );
+        }
+        highDensityRegions.push({ sum, idx: i * columns + j });
+      }
+    }
+
+    incrementedRow = true;
+  }
+
+  // sort and filter by sum then index
+  highDensityRegions.sort((a, b) => {
+    return b.sum == a.sum ? b.idx - a.idx : b.sum - a.sum;
+  });
   if (highDensityRegions.length > occupied.data.length) {
-    highDensityRegions.splice(
-      0,
-      highDensityRegions.length - occupied.data.length
-    );
+    highDensityRegions.splice(occupied.data.length);
   }
 
   return {
@@ -128,14 +211,6 @@ const getHighDensityRegions = (entry) => {
     ready,
     highDensityRegions: { data: highDensityRegions },
   };
-};
-
-const incrementAllBoards = (boards) => {
-  const incrementedBoards = boards.map((entry) =>
-    // increment board only when ready
-    entry.ready ? incrementBoardHelper(entry) : entry
-  );
-  return incrementedBoards;
 };
 
 const getHighDensityRegionsAllBoards = (boards) => {

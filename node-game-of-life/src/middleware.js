@@ -2,7 +2,7 @@ const sharp = require("sharp");
 const { PythonShell } = require("python-shell");
 
 const { kMean, labArrayToRgb } = require("./filters");
-const { getImage, putImage } = require("./s3_client");
+const { getImage, putImage } = require("./s3-client");
 const { ENTRY_SIZE, PALETTE_SIZE } = require("./data");
 
 function foundOne(rowStart, rowEnd, colStart, colEnd, board) {

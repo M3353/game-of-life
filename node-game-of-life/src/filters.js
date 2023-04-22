@@ -4,7 +4,7 @@ const {
   getNewCentroids,
   hasConverged,
   labToRgb,
-} = require("./filters_utils");
+} = require("./filters-utils");
 
 const MAX_ITERATIONS = 32;
 

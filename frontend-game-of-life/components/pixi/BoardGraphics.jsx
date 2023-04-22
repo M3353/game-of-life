@@ -2,7 +2,10 @@ import { Stage } from "@inlet/react-pixi";
 import React, { useState, useEffect } from "react";
 import useWindowDimensions from "../../src/useWindowDimensions";
 import { palettes } from "../../src/colors";
-import { GameOfLifeGrid, GameOfLifeImages } from "./BoardGraphicsComponents";
+import {
+  GameOfLifeGrid,
+  GameOfLifeImages,
+} from "./components/BoardGraphicsComponents";
 
 const BoardGraphics = (props) => {
   const { data, imageUrls } = props;

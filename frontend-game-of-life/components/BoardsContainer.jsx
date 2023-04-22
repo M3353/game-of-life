@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Box } from "@mui/system";
 
 import BoardGraphics from "./pixi/BoardGraphics";
-import { MovingImages } from "./pixi/BoardGraphicsComponents";
 import { useGameContext } from "../src/GameContext";
 import { getS3FileURL } from "../utils/utils";
 
