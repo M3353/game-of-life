@@ -6,8 +6,18 @@ import useWindowDimensions from "../../src/useWindowDimensions";
 const SIZE = 5;
 
 function UserEntryOccupiedCell(props) {
-  const { x, y, height, width, rows, columns, submission, setLocation, val } =
-    props;
+  const {
+    x,
+    y,
+    height,
+    width,
+    rows,
+    columns,
+    submission,
+    setLocation,
+    val,
+    id,
+  } = props;
 
   const xDim = width / columns;
   const yDim = height / rows;
@@ -20,23 +30,32 @@ function UserEntryOccupiedCell(props) {
   const draw = useCallback(
     (g) => {
       g.clear();
+      g.removeAllListeners();
+
       g.beginFill(fillVal, 1);
       g.drawRect(x * xDim, y * yDim, xDim, yDim);
       g.endFill();
+
       g.interactive = true;
       g.on("click", (e) => {
         if (val == 0) {
           setLocation(x, y);
         }
       });
+
+      g.on("touchstart", (e) => {
+        if (val == 0) {
+          setLocation(x, y);
+        }
+      });
     },
-    [props]
+    [height, width, id]
   );
   return <Graphics draw={draw} />;
 }
 
 export default function UserEntryOccupied(props) {
-  const { submission, dimensions } = props;
+  const { submission, dimensions, id } = props;
   let { rows, columns } = dimensions.current;
   rows /= SIZE;
   columns /= SIZE;
@@ -44,17 +63,25 @@ export default function UserEntryOccupied(props) {
   const [mounted, setMounted] = useState(false);
   const [rerender, setRerender] = useState(false);
 
-  let { height } = useWindowDimensions();
-  height *= 0.5;
-  const width = (columns / rows) * height;
+  let { width } = useWindowDimensions();
+  width *= 0.7;
+  const height = (rows / columns) * width;
 
   useEffect(() => {
     setMounted(true);
     setRerender(true);
   }, []);
 
+  useEffect(() => {
+    submission.current.location = [];
+  }, [id]);
+
   function handleUpdateLocation(x, y) {
-    submission.current.location = [x, y];
+    if (x === undefined || y === undefined) {
+      submission.current.location = [];
+    } else {
+      submission.current.location = [x, y];
+    }
 
     // forced rerender;
     setRerender(false);
@@ -71,13 +98,14 @@ export default function UserEntryOccupied(props) {
   );
 
   return (
-    <>
+    <div>
       {mounted && (
         <Stage width={width} height={height}>
           {rerender &&
             submission.current.occupied.map((e, i) => {
               return (
                 <UserEntryOccupiedCell
+                  id={id}
                   key={i}
                   submission={submission}
                   setLocation={handleUpdateLocation}
@@ -94,6 +122,6 @@ export default function UserEntryOccupied(props) {
           <Graphics draw={drawBorder} />
         </Stage>
       )}
-    </>
+    </div>
   );
 }

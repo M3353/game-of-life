@@ -12,7 +12,7 @@ import axios from "axios";
 export default function Delete() {
   const [data, setData] = useState();
   const [id, setId] = useState();
-  const url = process.env.NEXT_PUBLIC_VERCEL_URL;
+  const url = process.env.NEXT_PUBLIC_URL;
 
   function fetchData() {
     const endpoint = `${url}/boards`;

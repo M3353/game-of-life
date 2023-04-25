@@ -1,15 +1,19 @@
 import axios from "axios";
-import { Button } from "@mui/material";
+import { useState } from "react";
 
+import { PrimaryButton } from "./styled/StyledComponents";
 import { useGameContext } from "../src/GameContext";
+import withErrorBoundary from "./toasts/ErrorBoundary";
+import { CircularProgress } from "@mui/material";
 
 const UserEntrySubmitButton = (props) => {
   const { id, submission, fetchData, getSelectedData, dimensions, file } =
     props;
   const { s3 } = useGameContext();
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit() {
-    const url = process.env.NEXT_PUBLIC_VERCEL_URL;
+    const url = process.env.NEXT_PUBLIC_URL;
     const endpoint = `${url}/boards/${id}`;
     const { board, occupied, entry, location } = submission.current;
     const { rows, columns } = dimensions.current;
@@ -30,6 +34,7 @@ const UserEntrySubmitButton = (props) => {
       Body: file.img,
     };
 
+    setLoading(true);
     try {
       // await s3.upload(uploadParams).promise();
 
@@ -51,13 +56,19 @@ const UserEntrySubmitButton = (props) => {
     } catch (e) {
       console.log(e);
     }
+
+    setLoading(false);
   }
 
   return (
-    <Button variant="outlined" onClick={handleSubmit}>
-      submit
-    </Button>
+    <PrimaryButton
+      disabled={loading}
+      sx={{ width: "70vw" }}
+      onClick={handleSubmit}
+    >
+      {loading ? <CircularProgress /> : "submit"}
+    </PrimaryButton>
   );
 };
 
-export default UserEntrySubmitButton;
+export default withErrorBoundary(UserEntrySubmitButton);

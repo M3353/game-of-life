@@ -8,12 +8,12 @@ import { Box } from "@mui/system";
 export default function Boards() {
   const [data, setData] = useState([]);
   const [mounted, setMounted] = useState(false);
-  const url = process.env.NEXT_PUBLIC_VERCEL_URL;
+  const url = process.env.NEXT_PUBLIC_URL;
   const ws = useWebSocket({
     socketUrl:
       process.env.NODE_ENV == "production"
-        ? `ws://${process.env.NEXT_PUBLIC_VERCEL_URL.replace("https://", "")}`
-        : `ws://${process.env.NEXT_PUBLIC_VERCEL_URL.replace("http://", "")}`,
+        ? `ws://${process.env.NEXT_PUBLIC_URL.replace("https://", "")}`
+        : `ws://${process.env.NEXT_PUBLIC_URL.replace("http://", "")}`,
   });
 
   function fetchData() {

@@ -1,17 +1,13 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 
-import {
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Box,
-  Button,
-} from "@mui/material";
+import { FormControl, InputLabel, MenuItem, Select, Box } from "@mui/material";
 
 import UserEntrySubmitButton from "../components/UserEntrySubmitButton";
 import UserEntry from "../components/pixi/UserEntry";
 import UserEntryOccupied from "../components/pixi/UserEntryOccupied";
+import { PrimaryButton } from "./styled/StyledComponents";
+
+import styles from "../styles/submit.module.css";
 
 const SIZE = 5;
 
@@ -100,29 +96,54 @@ export default function SubmitContainer(props) {
           </Select>
         </FormControl>
       </Box>
-      {id != "" && <UserEntry submission={submission} />}
       {id != "" && submission.current.occupied != [] && (
-        <Box>
-          <UserEntryOccupied submission={submission} dimensions={dimensions} />
-          <Button variant="contained" component="label">
-            Upload Image
-            <input
-              hidden
-              accept="image/*"
-              multiple
-              type="file"
-              onChange={handleUploadImage}
+        <Box
+          m={5}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div className={styles.submitChildren}>
+            <UserEntry submission={submission} id={id} />
+          </div>
+          <div className={styles.submitChildren}>
+            <UserEntryOccupied
+              submission={submission}
+              dimensions={dimensions}
+              id={id}
             />
-          </Button>
-          <img alt="preview image" src={image.url} width="400" height="auto" />
-          <UserEntrySubmitButton
-            id={id}
-            submission={submission}
-            fetchData={fetchData}
-            getSelectedData={getSelectedData}
-            dimensions={dimensions}
-            file={image}
+          </div>
+          <div className={styles.submitChildren}>
+            <PrimaryButton sx={{ width: "70vw" }}>
+              Upload Image
+              <input
+                hidden
+                accept="image/*"
+                multiple
+                type="file"
+                onChange={handleUploadImage}
+              />
+            </PrimaryButton>
+          </div>
+          <img
+            src={image.url}
+            width="400"
+            height="auto"
+            className={styles.submitChildren}
           />
+          <div className={styles.submitChildren}>
+            <UserEntrySubmitButton
+              id={id}
+              submission={submission}
+              fetchData={fetchData}
+              getSelectedData={getSelectedData}
+              dimensions={dimensions}
+              file={image}
+            />
+          </div>
         </Box>
       )}
     </Box>

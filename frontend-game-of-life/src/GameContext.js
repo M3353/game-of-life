@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import AWS from "aws-sdk";
 
 AWS.config.update({
@@ -11,8 +11,23 @@ AWS.config.update({
 const GameContext = createContext();
 
 function GameProvider({ children }) {
+  const [isMobile, setIsMobile] = useState(false);
+
   const s3 = new AWS.S3();
-  const value = { s3 };
+
+  const handleWindowSizeChange = () => {
+    setIsMobile(window.innerWidth <= 768);
+  };
+
+  useEffect(() => {
+    window.addEventListener("resize", handleWindowSizeChange);
+    return () => {
+      window.removeEventListener("resize", handleWindowSizeChange);
+    };
+  }, []);
+
+  const value = { s3, isMobile };
+
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
 
