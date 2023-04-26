@@ -5,6 +5,7 @@ import { FormControl, InputLabel, MenuItem, Select, Box } from "@mui/material";
 import UserEntrySubmitButton from "../components/UserEntrySubmitButton";
 import UserEntry from "../components/pixi/UserEntry";
 import UserEntryOccupied from "../components/pixi/UserEntryOccupied";
+import ToastModule from "./toasts/ToastModule";
 import { PrimaryButton } from "./styled/StyledComponents";
 
 import styles from "../styles/submit.module.css";
@@ -35,6 +36,7 @@ export default function SubmitContainer(props) {
     key: "",
     url: "",
   });
+  const [openToast, setOpenToast] = useState(false);
 
   // use Ref to avoid rerender on update
   const submission = useRef(initialSubmission);
@@ -91,7 +93,11 @@ export default function SubmitContainer(props) {
             onChange={handleSelectBoard}
           >
             {data.map((entry) => {
-              return <MenuItem value={entry.id}>{entry.id}</MenuItem>;
+              return (
+                <MenuItem value={entry.id} key={entry.id}>
+                  {entry.id}
+                </MenuItem>
+              );
             })}
           </Select>
         </FormControl>
@@ -139,13 +145,19 @@ export default function SubmitContainer(props) {
               id={id}
               submission={submission}
               fetchData={fetchData}
-              getSelectedData={getSelectedData}
               dimensions={dimensions}
               file={image}
+              setOpenToast={setOpenToast}
             />
           </div>
         </Box>
       )}
+      <ToastModule
+        open={openToast}
+        setOpen={setOpenToast}
+        message={`Successfully added to board ${id}`}
+        severity="success"
+      />
     </Box>
   );
 }

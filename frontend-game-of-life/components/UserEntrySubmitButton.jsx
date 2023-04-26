@@ -1,14 +1,13 @@
 import axios from "axios";
 import { useState } from "react";
+import { CircularProgress } from "@mui/material";
 
 import { PrimaryButton } from "./styled/StyledComponents";
 import { useGameContext } from "../src/GameContext";
 import withErrorBoundary from "./toasts/ErrorBoundary";
-import { CircularProgress } from "@mui/material";
 
 const UserEntrySubmitButton = (props) => {
-  const { id, submission, fetchData, getSelectedData, dimensions, file } =
-    props;
+  const { id, submission, fetchData, dimensions, file, setOpenToast } = props;
   const { s3 } = useGameContext();
   const [loading, setLoading] = useState(false);
 
@@ -46,6 +45,7 @@ const UserEntrySubmitButton = (props) => {
           },
         })
         .then(({ data }) => {
+          setOpenToast(true);
           fetchData();
         })
         .catch((e) => {

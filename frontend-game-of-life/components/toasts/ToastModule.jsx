@@ -13,13 +13,12 @@ const Toast = (props) => {
 
   return (
     <Snackbar
+      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       open={open}
-      vertical="bottom"
-      horizonal="right"
       onClose={handleClose}
       autoHideDuration={6000}
     >
-      <Alert severity={severity} onClose={handleClose} sx={{ width: ".4vw" }}>
+      <Alert severity={severity} onClose={handleClose} sx={{ width: "100%" }}>
         {message}
       </Alert>
     </Snackbar>

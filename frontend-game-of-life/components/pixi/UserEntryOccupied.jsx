@@ -1,27 +1,17 @@
-import { useCallback, useEffect, useState, useMemo } from "react";
-import { Stage, Graphics } from "@inlet/react-pixi";
+import "@pixi/events";
+import { useCallback, useEffect, useState } from "react";
+import { Stage, Graphics } from "@pixi/react";
 
 import useWindowDimensions from "../../src/useWindowDimensions";
 
 const SIZE = 5;
 
 function UserEntryOccupiedCell(props) {
-  const {
-    x,
-    y,
-    height,
-    width,
-    rows,
-    columns,
-    submission,
-    setLocation,
-    val,
-    id,
-  } = props;
+  const { x, y, height, width, rows, columns, location, setLocation, val, id } =
+    props;
 
   const xDim = width / columns;
   const yDim = height / rows;
-  const location = submission.current.location;
   const fillVal =
     val == 1 || (location.length == 2 && x == location[0] && y == location[1])
       ? 0x000000
@@ -36,20 +26,20 @@ function UserEntryOccupiedCell(props) {
       g.drawRect(x * xDim, y * yDim, xDim, yDim);
       g.endFill();
 
-      g.interactive = true;
-      g.on("click", (e) => {
+      g.eventMode = "static";
+      g.addEventListener("click", (e) => {
         if (val == 0) {
-          setLocation(x, y);
+          setLocation([x, y]);
         }
       });
 
-      g.on("touchstart", (e) => {
+      g.addEventListener("touchstart", (e) => {
         if (val == 0) {
-          setLocation(x, y);
+          setLocation([x, y]);
         }
       });
     },
-    [height, width, id]
+    [height, width, location, id]
   );
   return <Graphics draw={draw} />;
 }
@@ -61,7 +51,7 @@ export default function UserEntryOccupied(props) {
   columns /= SIZE;
 
   const [mounted, setMounted] = useState(false);
-  const [rerender, setRerender] = useState(false);
+  const [location, setLocation] = useState([]);
 
   let { width } = useWindowDimensions();
   width *= 0.7;
@@ -69,23 +59,15 @@ export default function UserEntryOccupied(props) {
 
   useEffect(() => {
     setMounted(true);
-    setRerender(true);
   }, []);
 
   useEffect(() => {
-    submission.current.location = [];
+    handleUpdateLocation();
   }, [id]);
 
-  function handleUpdateLocation(x, y) {
-    if (x === undefined || y === undefined) {
-      submission.current.location = [];
-    } else {
-      submission.current.location = [x, y];
-    }
-
-    // forced rerender;
-    setRerender(false);
-    setRerender(true);
+  function handleUpdateLocation(location) {
+    submission.current.location = location === undefined ? [] : location;
+    setLocation(location === undefined ? [] : location);
   }
 
   const drawBorder = useCallback(
@@ -101,24 +83,23 @@ export default function UserEntryOccupied(props) {
     <div>
       {mounted && (
         <Stage width={width} height={height}>
-          {rerender &&
-            submission.current.occupied.map((e, i) => {
-              return (
-                <UserEntryOccupiedCell
-                  id={id}
-                  key={i}
-                  submission={submission}
-                  setLocation={handleUpdateLocation}
-                  x={i % columns}
-                  y={parseInt(i / columns)}
-                  height={height}
-                  width={width}
-                  columns={columns}
-                  rows={rows}
-                  val={e}
-                />
-              );
-            })}
+          {submission.current.occupied.map((e, i) => {
+            return (
+              <UserEntryOccupiedCell
+                id={id}
+                key={i}
+                location={location}
+                setLocation={handleUpdateLocation}
+                x={i % columns}
+                y={parseInt(i / columns)}
+                height={height}
+                width={width}
+                columns={columns}
+                rows={rows}
+                val={e}
+              />
+            );
+          })}
           <Graphics draw={drawBorder} />
         </Stage>
       )}

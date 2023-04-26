@@ -1,4 +1,5 @@
-import { Stage, Graphics } from "@inlet/react-pixi";
+import "@pixi/events";
+import { Stage, Graphics } from "@pixi/react";
 import { Box } from "@mui/material";
 
 import React, { useCallback, useState, useEffect, useRef } from "react";
@@ -41,16 +42,16 @@ function UserEntryCell(props) {
         g.tint = entry[idx] == 1 ? 0x000000 : 0xffffff;
       };
 
-      g.interactive = true;
-      // mouse events
-      g.on("mousedown", (e) => {
+      g.eventMode = "static";
+      g.addEventListener("mousedown", (e) => {
         handleToggleCell();
       });
-      g.on("mouseover", (e) => {
+      g.addEventListener("mouseover", (e) => {
         if (mouseDown.current) {
           handleToggleCell();
         }
       });
+
       // touch events
       g.on("touchstart", (e) => {
         const touchEvent = e.data.originalEvent;

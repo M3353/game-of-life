@@ -1,11 +1,12 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { Graphics, Sprite } from "@inlet/react-pixi";
+import "pixi.js";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
+import * as PIXI from "pixi.js";
+import { Graphics, Sprite } from "@pixi/react";
 import { toColor } from "./utils";
 
 const GameOfLifeImages = (props) => {
   const { data, imageUrls, xDim, yDim } = props;
   const { columns, highDensityRegions } = data;
-
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -16,19 +17,23 @@ const GameOfLifeImages = (props) => {
     <>
       {mounted &&
         imageUrls !== undefined &&
+        imageUrls.length > 0 &&
+        highDensityRegions.data !== undefined &&
         highDensityRegions.data.map((val, i) => {
           const { idx } = val;
           const image = imageUrls[i % imageUrls.length];
           const x = idx % columns;
           const y = parseInt(idx / columns);
+
           return (
             <Sprite
+              key={idx}
               image={image.url}
               scale={{ x: 1, y: 1 }}
-              anchor={0.5}
+              anchor={{ x: 0.5, y: 0.5 }}
               x={x * xDim}
               y={y * yDim}
-              alpha={0.4}
+              alpha={0.5}
             />
           );
         })}

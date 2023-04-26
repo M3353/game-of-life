@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Toast } from "./Toast";
+import { Toast } from "./ToastModule";
 
 function withErrorBoundary(WrappedComponent) {
   return function ErrorBoundary(props) {
