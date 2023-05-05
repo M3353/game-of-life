@@ -52,13 +52,12 @@ function UserEntryOccupiedCell(props) {
 }
 
 export default function UserEntryOccupied(props) {
-  const { submission, dimensions, id, width } = props;
+  const { submission, dimensions, id, width, location, setLocation } = props;
   let { rows, columns } = dimensions.current;
   rows /= SIZE;
   columns /= SIZE;
 
   const [mounted, setMounted] = useState(false);
-  const [location, setLocation] = useState([]);
 
   const ctx = useGameContext();
   const { colors } = ctx;
@@ -78,7 +77,6 @@ export default function UserEntryOccupied(props) {
   }, [id]);
 
   function handleUpdateLocation(location) {
-    submission.current.location = location === undefined ? [] : location;
     setLocation(location === undefined ? [] : location);
   }
 

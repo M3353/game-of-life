@@ -16,19 +16,21 @@ const UserEntrySubmitButton = (props) => {
     setSubmitted,
     loading,
     setLoading,
+    location,
+    numFilled,
   } = props;
-  const { board, occupied, entry, location, palette } = submission.current;
+  const { board, occupied, entry, palette } = submission.current;
   const { rows, columns } = dimensions.current;
   const { s3 } = useGameContext();
 
-  const isDisabled = useMemo(
-    () =>
+  const isDisabled = useMemo(() => {
+    return (
       loading ||
       location.length === 0 ||
-      entry.indexOf(1) < 0 ||
-      file.img === undefined,
-    [file.img, entry, loading, location]
-  );
+      numFilled == 0 ||
+      file.img === undefined
+    );
+  }, [file.img, numFilled, loading, location]);
 
   async function handleSubmit() {
     const url = process.env.NEXT_PUBLIC_URL;

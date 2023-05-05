@@ -137,11 +137,19 @@ function uniqueSort(arr) {
   return ret;
 }
 
-async function _updateBoardWithUserImage(req, res, next) {
-  const { file, palette, boardOccupied, id } = req.body;
+async function handleSubmitImageError(key) {
+  const deleteParams = {
+    Bucket: process.env.S3_BUCKET,
+    Key: key,
+  };
 
-  const filePath = id + "/" + file;
+  const deleteCommand = new DeleteObjectCommand(deleteParams);
+  await s3.send(deleteCommand);
 
+  console.log(`deleted image with key ${key}`);
+}
+
+async function removeBackground(filePath) {
   // remove background
   const pythonShellOptions = {
     pythonOptions: ["-u"],
@@ -159,19 +167,42 @@ async function _updateBoardWithUserImage(req, res, next) {
     pythonShellOptions
   );
 
-  pyShell.on("error", function (err) {
-    console.error(err);
-  });
-
   pyShell.end(function (err, code, signal) {
     if (err) throw err;
     console.log("The exit code was: " + code);
     console.log("The exit signal was: " + signal);
     console.log("finished");
   });
+}
+
+async function updateBoardWithUserImage(req, res, next) {
+  const { file, palette, boardOccupied, id } = req.body;
+
+  const filePath = id + "/" + file;
+
+  try {
+    await removeBackground(filePath);
+  } catch (e) {
+    handleSubmitImageError(filePath);
+    res.status(401).send({
+      message: `[ERROR] error ${err} when attempting to remove background ${filePath}`,
+    });
+    return next(e);
+  }
 
   // get image from s3 and convert to byte stream
   const imageFromS3 = await getImage(filePath);
+
+  // try to get sharp metadata - if error, return
+  try {
+    await sharp(imageFromS3).metadata();
+  } catch (err) {
+    handleSubmitImageError(filePath);
+    res.status(401).send({
+      message: `[ERROR] error when attempting to process image ${filePath}`,
+    });
+    return next(err);
+  }
 
   // resize and blur image using sharp
   const { data, info } = await sharp(imageFromS3)
@@ -184,11 +215,7 @@ async function _updateBoardWithUserImage(req, res, next) {
     .median()
     .toColorspace("lab")
     .raw({ depth: "float" })
-    .toBuffer({ resolveWithObject: true })
-    .then(console.log("image processed fine"))
-    .catch((error) => {
-      console.log(error);
-    });
+    .toBuffer({ resolveWithObject: true });
 
   // manually process image
   const { pixelArray, colors } = await applyFilter(data, info);
@@ -210,11 +237,7 @@ async function _updateBoardWithUserImage(req, res, next) {
     raw: { width, height, channels },
   })
     .toFormat("png")
-    .toBuffer()
-    .then(console.log("image to s3 fine"))
-    .catch((error) => {
-      console.log(error);
-    });
+    .toBuffer();
 
   await putImage(imageToS3, filePath);
 
@@ -246,17 +269,6 @@ async function emptyS3Directory(req, res, next) {
 
   if (listedObjects.IsTruncated) await emptyS3Directory(req, res, next);
 
-  next();
-}
-
-async function updateBoardWithUserImage(req, res, next) {
-  try {
-    _updateBoardWithUserImage(req, res, next);
-  } catch (e) {
-    console.log(e);
-    res.status(401).send();
-    return next(e);
-  }
   next();
 }
 

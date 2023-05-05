@@ -13,20 +13,20 @@ function UserEntryCell(props) {
   const {
     x,
     y,
-    width,
-    height,
+    xDim,
+    yDim,
     mouseDown,
     lastTouches,
     submission,
     id,
     loading,
-    colors,
+    numFilled,
+    setNumFilled,
+    ctx,
   } = props;
-  const { primary, background } = colors;
+  const { primary, background } = ctx.colors;
   const [changedBoard, setChangedBoard] = useState(false);
 
-  const xDim = width / COLS;
-  const yDim = height / ROWS;
   const entry = submission.current.entry;
   const idx = y * COLS + x;
 
@@ -44,6 +44,7 @@ function UserEntryCell(props) {
       if (changedBoard) {
         g.tint = 0xffffff;
         setChangedBoard(false);
+        setNumFilled(0);
       }
 
       g.beginFill(background, 1);
@@ -52,7 +53,8 @@ function UserEntryCell(props) {
 
       const handleToggleCell = () => {
         entry[idx] ^= 1;
-        g.tint = entry[idx] == 1 ? primary : 0xffffff;
+        setNumFilled(entry[idx] === 1 ? numFilled + 1 : numFilled - 1);
+        g.tint = entry[idx] === 1 ? primary : 0xffffff;
       };
 
       g.eventMode = loading ? "none" : "static";
@@ -67,20 +69,20 @@ function UserEntryCell(props) {
 
       if ([...lastTouches.values()].includes(idx)) handleToggleCell();
     },
-    [width, height, changedBoard, lastTouches, loading]
+    [xDim, yDim, changedBoard, lastTouches, loading, numFilled]
   );
 
   return <Graphics draw={draw} />;
 }
 
 export default function UserEntry(props) {
-  const { submission, id, setStageWidth } = props;
-  const [mounted, setMounted] = useState(false);
+  const { submission, id, setStageWidth, loading, numFilled, setNumFilled } =
+    props;
   const [lastTouches, setLastTouches] = useState(new Map());
   const mouseDown = useRef(false);
   const ctx = useGameContext();
   let { width, height, colors } = ctx;
-  const { primary } = ctx.colors;
+  const { primary } = colors;
 
   width = width > height ? (COLS / ROWS) * height : width;
   height = height > width ? (ROWS / COLS) * width : height;
@@ -88,10 +90,6 @@ export default function UserEntry(props) {
   height *= 0.7;
 
   setStageWidth(width);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleMouseDown = () => {
     mouseDown.current = true;
@@ -128,34 +126,39 @@ export default function UserEntry(props) {
 
   return (
     <Box>
-      {mounted && (
-        <Stage
-          width={width}
-          height={height}
-          options={{ backgroundAlpha: 0, antialias: true }}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onTouchMove={handleOnTouchStartMove}
-          onTouchStart={handleOnTouchStartMove}
-          onTouchEnd={handleOnTouchEnd}
-        >
-          {submission.current.entry.map((e, i) => (
+      <Stage
+        width={width}
+        height={height}
+        options={{ backgroundAlpha: 0, antialias: true }}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onTouchMove={handleOnTouchStartMove}
+        onTouchStart={handleOnTouchStartMove}
+        onTouchEnd={handleOnTouchEnd}
+      >
+        {submission.current.entry.map((e, i) => {
+          const xDim = width / COLS;
+          const yDim = height / ROWS;
+          return (
             <UserEntryCell
               id={id}
               key={i}
               y={parseInt(i / COLS)}
               x={i % COLS}
-              width={width}
-              height={height}
+              xDim={xDim}
+              yDim={yDim}
               mouseDown={mouseDown}
               lastTouches={lastTouches}
               submission={submission}
-              colors={colors}
+              loading={loading}
+              numFilled={numFilled}
+              setNumFilled={setNumFilled}
+              ctx={ctx}
             />
-          ))}
-          <Graphics draw={drawBorder} />
-        </Stage>
-      )}
+          );
+        })}
+        <Graphics draw={drawBorder} />
+      </Stage>
     </Box>
   );
 }

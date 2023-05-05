@@ -35,7 +35,6 @@ export default function SubmitContainer(props) {
     }
     return {
       entry: ne,
-      location: [],
       occupied: [],
       board: [],
       palette: [],
@@ -52,6 +51,8 @@ export default function SubmitContainer(props) {
   const [loading, setLoading] = useState(false);
   const [stageWidth, setStageWidth] = useState();
   const [ready, setReady] = useState(false);
+  const [location, setLocation] = useState([]);
+  const [numFilled, setNumFilled] = useState(0);
 
   // use Ref to avoid rerender on update
   const submission = useRef(initialSubmission);
@@ -193,6 +194,8 @@ export default function SubmitContainer(props) {
                   id={id}
                   loading={loading}
                   setStageWidth={setStageWidth}
+                  numFilled={numFilled}
+                  setNumFilled={setNumFilled}
                 />
               </div>
               <div className={styles.submitChildren}>
@@ -205,6 +208,8 @@ export default function SubmitContainer(props) {
                   id={id}
                   loading={loading}
                   width={stageWidth}
+                  location={location}
+                  setLocation={setLocation}
                 />
               </div>
               <input
@@ -243,6 +248,8 @@ export default function SubmitContainer(props) {
                   setSubmitted={setSubmitted}
                   loading={loading}
                   setLoading={setLoading}
+                  numFilled={numFilled}
+                  location={location}
                 />
               </div>
             </Box>
