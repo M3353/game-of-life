@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { Button } from "@mui/material";
+import { Button, Box } from "@mui/material";
 import { NextLinkComposed } from "../src/Link";
 import { navLinks } from "../src/links";
 
 const Footer = () => {
   return (
-    <>
+    <Box>
       {navLinks.map((link, i) => (
         <Button
           component={NextLinkComposed}
@@ -17,7 +17,7 @@ const Footer = () => {
           {link.name}
         </Button>
       ))}
-    </>
+    </Box>
   );
 };
 

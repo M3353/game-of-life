@@ -1,10 +1,5 @@
-import Home from "./home";
-import Footer from "../components/Footer";
+import HomeContainer from "../containers/HomeContainer";
 
 export default function App() {
-  return(
-    <>
-      <Home/>
-    </>
-  )
+  return <HomeContainer />;
 }

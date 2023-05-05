@@ -59,4 +59,4 @@ async function putImage(img, file) {
   }
 }
 
-module.exports = { getImage, putImage, getS3Stream };
+module.exports = { s3, getImage, putImage, getS3Stream };

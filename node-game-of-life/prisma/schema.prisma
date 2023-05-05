@@ -16,6 +16,7 @@ model Board {
   board               Json
   occupied            Json
   highDensityRegions  Json  
+  palette             Json
   rows                Int           @db.SmallInt
   columns             Int           @db.SmallInt
   ready               Boolean?

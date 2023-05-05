@@ -1,21 +1,23 @@
 import "@pixi/events";
 import { useCallback, useEffect, useState } from "react";
+import { Box } from "@mui/material";
 import { Stage, Graphics } from "@pixi/react";
 
-import useWindowDimensions from "../../src/useWindowDimensions";
+import { useGameContext } from "../../src/GameContext";
 
 const SIZE = 5;
 
 function UserEntryOccupiedCell(props) {
-  const { x, y, height, width, rows, columns, location, setLocation, val, id } =
+  const { x, y, xDim, yDim, location, setLocation, val, id, loading, colors } =
     props;
+  const { primary, background } = colors;
 
-  const xDim = width / columns;
-  const yDim = height / rows;
   const fillVal =
     val == 1 || (location.length == 2 && x == location[0] && y == location[1])
-      ? 0x000000
-      : 0xffffff;
+      ? primary
+      : background;
+
+  const sizeOffset = xDim / (SIZE * Math.pow(Math.log(SIZE), 2));
 
   const draw = useCallback(
     (g) => {
@@ -23,10 +25,15 @@ function UserEntryOccupiedCell(props) {
       g.removeAllListeners();
 
       g.beginFill(fillVal, 1);
-      g.drawRect(x * xDim, y * yDim, xDim, yDim);
+      g.drawRect(
+        x * xDim + sizeOffset,
+        y * yDim + sizeOffset,
+        xDim - 2 * sizeOffset,
+        yDim - 2 * sizeOffset
+      );
       g.endFill();
 
-      g.eventMode = "static";
+      g.eventMode = loading ? "none" : "static";
       g.addEventListener("click", (e) => {
         if (val == 0) {
           setLocation([x, y]);
@@ -39,13 +46,13 @@ function UserEntryOccupiedCell(props) {
         }
       });
     },
-    [height, width, location, id]
+    [xDim, yDim, location, id, loading]
   );
   return <Graphics draw={draw} />;
 }
 
 export default function UserEntryOccupied(props) {
-  const { submission, dimensions, id } = props;
+  const { submission, dimensions, id, width } = props;
   let { rows, columns } = dimensions.current;
   rows /= SIZE;
   columns /= SIZE;
@@ -53,9 +60,14 @@ export default function UserEntryOccupied(props) {
   const [mounted, setMounted] = useState(false);
   const [location, setLocation] = useState([]);
 
-  let { width } = useWindowDimensions();
-  width *= 0.7;
+  const ctx = useGameContext();
+  const { colors } = ctx;
+  const { primary } = colors;
+
   const height = (rows / columns) * width;
+
+  const xDim = width / columns;
+  const yDim = height / rows;
 
   useEffect(() => {
     setMounted(true);
@@ -72,17 +84,29 @@ export default function UserEntryOccupied(props) {
 
   const drawBorder = useCallback(
     (g) => {
+      const lineSize = 6;
       g.clear();
-      g.lineStyle(5, 0x000000, 1);
+      g.lineStyle(lineSize, primary, 1);
       g.drawRect(0, 0, width, height);
+
+      g.lineStyle(lineSize / 2, primary, 1);
+      for (let x = 0; x < width; x += xDim) {
+        g.moveTo(x, 0);
+        g.lineTo(x, height);
+      }
+
+      for (let y = 0; y < height; y += yDim) {
+        g.moveTo(0, y);
+        g.lineTo(width, y);
+      }
     },
-    [props]
+    [props, height]
   );
 
   return (
-    <div>
+    <Box>
       {mounted && (
-        <Stage width={width} height={height}>
+        <Stage width={width} height={height} options={{ backgroundAlpha: 0 }}>
           {submission.current.occupied.map((e, i) => {
             return (
               <UserEntryOccupiedCell
@@ -92,17 +116,16 @@ export default function UserEntryOccupied(props) {
                 setLocation={handleUpdateLocation}
                 x={i % columns}
                 y={parseInt(i / columns)}
-                height={height}
-                width={width}
-                columns={columns}
-                rows={rows}
+                xDim={xDim}
+                yDim={yDim}
                 val={e}
+                colors={colors}
               />
             );
           })}
           <Graphics draw={drawBorder} />
         </Stage>
       )}
-    </div>
+    </Box>
   );
 }

@@ -1,13 +1,32 @@
-import "pixi.js";
-import React, { useState, useCallback, useEffect, useMemo } from "react";
-import * as PIXI from "pixi.js";
+import React, { useState, useCallback, useEffect } from "react";
 import { Graphics, Sprite } from "@pixi/react";
-import { toColor } from "./utils";
+import { toColor, toInvertedColor } from "./utils";
 
-const GameOfLifeImages = (props) => {
-  const { data, imageUrls, xDim, yDim } = props;
-  const { columns, highDensityRegions } = data;
+const GameOfLifeTruncatedCircles = (props) => {
+  const { data, xDim, yDim } = props;
+  const { columns, highDensityRegions, palette, occupied } = data;
   const [mounted, setMounted] = useState(false);
+
+  highDensityRegions.data.slice(
+    Math.max(highDensityRegions.data.length - occupied.data.length, 1)
+  );
+
+  const draw = useCallback(
+    (x, y, color, sum) => (g) => {
+      const xCoord = x * xDim;
+      const yCoord = y * yDim;
+      const radius = sum % (xDim * Math.log(xDim));
+      g.clear();
+      g.lineStyle(5, color);
+      g.arc(xCoord, yCoord, radius, 0, (3 / 2) * Math.PI);
+      g.moveTo(xCoord, yCoord);
+      g.lineTo(xCoord + radius, yCoord);
+      g.moveTo(xCoord, yCoord);
+      g.lineTo(xCoord, yCoord + radius);
+      g.endFill();
+    },
+    [xDim, yDim, data]
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -16,12 +35,79 @@ const GameOfLifeImages = (props) => {
   return (
     <>
       {mounted &&
+        highDensityRegions.data.map((val, i) => {
+          const { idx, sum } = val;
+          const x = idx % columns;
+          const y = parseInt(idx / columns);
+          const color = palette.data[i % palette.data.length].color;
+          return <Graphics draw={draw(x, y, toInvertedColor(color), sum)} />;
+        })}
+    </>
+  );
+};
+
+const GameOfLifeCircles = (props) => {
+  const { data, xDim, yDim } = props;
+  const { columns, highDensityRegions, palette, occupied } = data;
+  const [mounted, setMounted] = useState(false);
+
+  if (highDensityRegions.data.length > occupied.data.length) {
+    highDensityRegions.data.splice(occupied.data.length);
+  }
+
+  const draw = useCallback(
+    (x, y, color, sum) => (g) => {
+      const xCoord = x * xDim;
+      const yCoord = y * yDim;
+      g.clear();
+      g.lineStyle(5, color);
+      g.drawCircle(xCoord, yCoord, sum % (xDim * Math.log(xDim)));
+      g.endFill();
+    },
+    [xDim, yDim, data]
+  );
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  return (
+    <>
+      {mounted &&
+        highDensityRegions.data.map((val, i) => {
+          const { idx, sum } = val;
+          const x = idx % columns;
+          const y = parseInt(idx / columns);
+          const color = palette.data[i % palette.data.length].color;
+          return <Graphics draw={draw(x, y, toInvertedColor(color), sum)} />;
+        })}
+    </>
+  );
+};
+
+const GameOfLifeImages = (props) => {
+  const { data, imageUrls, xDim, yDim, id } = props;
+  const { columns, highDensityRegions, occupied } = data;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (highDensityRegions.data.length > occupied.data.length) {
+    highDensityRegions.data.splice(occupied.data.length);
+  }
+
+  return (
+    <>
+      {mounted &&
         imageUrls !== undefined &&
-        imageUrls.length > 0 &&
+        imageUrls.size > 0 &&
         highDensityRegions.data !== undefined &&
         highDensityRegions.data.map((val, i) => {
           const { idx } = val;
-          const image = imageUrls[i % imageUrls.length];
+          const images = imageUrls.get(id);
+          const image = images[i % images.length];
           const x = idx % columns;
           const y = parseInt(idx / columns);
 
@@ -29,7 +115,7 @@ const GameOfLifeImages = (props) => {
             <Sprite
               key={idx}
               image={image.url}
-              scale={{ x: 1, y: 1 }}
+              scale={{ x: Math.log(xDim) / 2, y: Math.log(yDim) / 2 }}
               anchor={{ x: 0.5, y: 0.5 }}
               x={x * xDim}
               y={y * yDim}
@@ -58,8 +144,8 @@ function Cell(props) {
 }
 
 const GameOfLifeGrid = (props) => {
-  const { data, palette, xDim, yDim } = props;
-  const { columns, board } = data;
+  const { data, xDim, yDim } = props;
+  const { columns, board, palette } = data;
 
   const [mounted, setMounted] = useState(false);
   const [maxVal, setMaxVal] = useState();
@@ -87,7 +173,7 @@ const GameOfLifeGrid = (props) => {
               x={i % columns}
               y={parseInt(i / columns)}
               val={ele}
-              palette={palette}
+              palette={palette.data[i % palette.data.length].color}
               maxFrom={maxVal}
               minFrom={minVal}
               xDim={xDim}
@@ -102,4 +188,6 @@ const GameOfLifeGrid = (props) => {
 module.exports = {
   GameOfLifeGrid,
   GameOfLifeImages,
+  GameOfLifeCircles,
+  GameOfLifeTruncatedCircles,
 };

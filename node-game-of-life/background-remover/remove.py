@@ -14,8 +14,6 @@ BUCKET=sys.argv[2]
 ACCESS_KEY=sys.argv[3]
 SECRET_KEY=sys.argv[4]
 
-output_path="output.png"
-
 s3 = boto3.client('s3', aws_access_key_id=ACCESS_KEY,
                       aws_secret_access_key=SECRET_KEY)
 def image_from_s3():
@@ -31,9 +29,14 @@ def image_to_s3(output):
 
 def main():
     input_img = image_from_s3()
-    output_img = remove(input_img)
-    input_img.close()
-    image_to_s3(output_img)
+    try:
+        output_img = remove(input_img)
+    except:
+        print("an error occured during background removal")
+    else:
+        image_to_s3(output_img)
+    finally:
+        input_img.close()
 
 if __name__ == "__main__":
     main()

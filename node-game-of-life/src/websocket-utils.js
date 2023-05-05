@@ -7,7 +7,16 @@ const inBoard = (x, y, nr, nc) => {
 };
 
 const incrementBoardHelper = (entry) => {
-  const { board, rows, columns, name, id, occupied, ready } = entry;
+  const {
+    board,
+    rows,
+    columns,
+    name,
+    id,
+    occupied,
+    ready,
+    highDensityRegions,
+  } = entry;
 
   const offsets = [
     [0, -1],
@@ -19,6 +28,8 @@ const incrementBoardHelper = (entry) => {
     [1, -1],
     [1, 1],
   ];
+
+  let sum = 0;
 
   const incrementedBoard = board.data.map((ele, i) => {
     let alive = 0;
@@ -34,22 +45,20 @@ const incrementBoardHelper = (entry) => {
         inBoard(x, y, rows, columns) && board.data[y * rows + x] > 0 ? 1 : 0;
     });
 
-    return ele > 0 && (alive == 2 || alive == 3)
-      ? ele + 1
-      : ele == 0 && alive == 3
-      ? 1
-      : 0;
+    const newEle =
+      ele > 0 && (alive == 2 || alive == 3)
+        ? ele + 1
+        : ele == 0 && alive == 3
+        ? 1
+        : 0;
+
+    sum += ele;
+    return newEle;
   });
 
-  return {
-    board: { data: incrementedBoard },
-    id,
-    name,
-    occupied,
-    rows,
-    columns,
-    ready,
-  };
+  entry.finished = sum == 0 ? true : false;
+  entry.board = { data: sum == 0 ? board.data : incrementedBoard };
+  return entry;
 };
 
 const incrementAllBoards = (boards) => {
@@ -195,28 +204,22 @@ const getHighDensityRegions = (entry) => {
 
   // sort and filter by sum then index
   highDensityRegions.sort((a, b) => {
-    return b.sum == a.sum ? b.idx - a.idx : b.sum - a.sum;
+    return b.sum - a.sum;
   });
   if (highDensityRegions.length > occupied.data.length) {
     highDensityRegions.splice(occupied.data.length);
   }
 
-  return {
-    board,
-    id,
-    name,
-    occupied,
-    rows,
-    columns,
-    ready,
-    highDensityRegions: { data: highDensityRegions },
-  };
+  entry.highDensityRegions = { data: highDensityRegions };
+  return entry;
 };
 
 const getHighDensityRegionsAllBoards = (boards) => {
-  const allBoardsHighDensityRegions = boards.map((entry) =>
-    entry.ready ? getHighDensityRegions(entry) : entry
-  );
+  const allBoardsHighDensityRegions = boards.map((entry) => {
+    return entry.ready && !entry.finished
+      ? getHighDensityRegions(entry)
+      : entry;
+  });
   return allBoardsHighDensityRegions;
 };
 
@@ -263,7 +266,7 @@ async function broadcast(clients) {
     for (let c of clients.values()) {
       c.send(data);
     }
-  }, 3000);
+  }, 2500);
   return res.data;
 }
 

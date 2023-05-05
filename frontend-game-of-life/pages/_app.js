@@ -1,21 +1,21 @@
 import React from "react";
 
 import { ThemeProvider } from "@mui/material/styles";
-import { Box } from "@mui/system";
+import { Box, CssBaseline } from "@mui/material";
 
-import Footer from "../components/Footer";
 import { GameProvider } from "../src/GameContext";
-import { GameOfLifeTheme } from "../themes/themes";
+import { SessionProvider } from "next-auth/react";
+import { GameOfLifeTheme } from "../styles/themes";
 
-function MyApp({ Component, pageProps }) {
+function MyApp({ Component, pageProps: { session, ...pageProps } }) {
   return (
     <GameProvider>
-      <ThemeProvider theme={GameOfLifeTheme}>
-        <Box>
+      <SessionProvider session={session}>
+        <ThemeProvider theme={GameOfLifeTheme}>
+          <CssBaseline />
           <Component {...pageProps} />
-          <Footer />
-        </Box>
-      </ThemeProvider>
+        </ThemeProvider>
+      </SessionProvider>
     </GameProvider>
   );
 }

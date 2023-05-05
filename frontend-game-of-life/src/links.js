@@ -4,11 +4,15 @@ const navLinks = [
     path: "/",
   },
   {
+    name: "about",
+    path: "/about",
+  },
+  {
     name: "Submit",
     path: "/submit",
   },
   {
-    name: "Boards",
+    name: "Gallery",
     path: "/boards",
   },
   {
@@ -28,7 +32,23 @@ const adminLinks = [
   },
 ];
 
+const homeLinks = [
+  {
+    name: "Submit",
+    path: "/submit",
+  },
+  {
+    name: "Gallery",
+    path: "/boards",
+  },
+  {
+    name: "about",
+    path: "/about",
+  },
+];
+
 module.exports = {
   navLinks,
   adminLinks,
+  homeLinks,
 };

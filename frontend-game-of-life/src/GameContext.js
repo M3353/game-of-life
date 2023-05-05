@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import AWS from "aws-sdk";
 
+import * as colors from "../styles/colors";
+
 AWS.config.update({
   bucketName: process.env.NEXT_PUBLIC_S3_BUCKET,
   region: process.env.NEXT_PUBLIC_REGION,
@@ -10,25 +12,48 @@ AWS.config.update({
 
 const GameContext = createContext();
 
+function getWindowDimensions() {
+  const { innerWidth: width, innerHeight: height } = window;
+  return {
+    width,
+    height,
+  };
+}
+
 function GameProvider({ children }) {
+  const [windowDimensions, setWindowDimensions] = useState({
+    width: undefined,
+    height: undefined,
+  });
   const [isMobile, setIsMobile] = useState(false);
+  const [galleryView, setGalleryView] = useState(false);
 
   const s3 = new AWS.S3();
 
-  const handleWindowSizeChange = () => {
+  const handleResize = () => {
+    setWindowDimensions(getWindowDimensions());
     setIsMobile(window.innerWidth <= 768);
   };
 
   useEffect(() => {
-    window.addEventListener("resize", handleWindowSizeChange);
+    handleResize();
+    window.addEventListener("resize", handleResize);
     return () => {
-      window.removeEventListener("resize", handleWindowSizeChange);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
-  const value = { s3, isMobile };
+  const values = {
+    s3,
+    isMobile,
+    colors,
+    galleryView,
+    setGalleryView,
+    width: windowDimensions.width,
+    height: windowDimensions.height,
+  };
 
-  return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
+  return <GameContext.Provider value={values}>{children}</GameContext.Provider>;
 }
 
 function useGameContext() {

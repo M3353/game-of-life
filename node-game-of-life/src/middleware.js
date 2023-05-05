@@ -1,9 +1,15 @@
 const sharp = require("sharp");
 const { PythonShell } = require("python-shell");
+const {
+  ListObjectsV2Command,
+  DeleteObjectCommand,
+} = require("@aws-sdk/client-s3");
 
-const { kMean, labArrayToRgb } = require("./filters");
+const { kMean } = require("./filters");
 const { getImage, putImage } = require("./s3-client");
-const { ENTRY_SIZE, PALETTE_SIZE } = require("./data");
+const { ENTRY_SIZE, PALETTE_SIZE, EPS } = require("./data");
+const { labToRgb } = require("./filters-utils");
+const { s3 } = require("./s3-client");
 
 function foundOne(rowStart, rowEnd, colStart, colEnd, board) {
   // better algorithm is to sort and check the first val, O(nlogn)
@@ -46,7 +52,8 @@ const createValidBoard = (req, res, next) => {
   req.body = {
     board: { data: _board },
     occupied: { data: _occupied },
-    highDensityRegions: {},
+    highDensityRegions: { data: [] },
+    palette: { data: [] },
     rows,
     columns,
     ready,
@@ -82,85 +89,174 @@ const updateBoardWithUserEntry = (req, res, next) => {
   const updatedBoardOccupied = boardOccupied.map((ele) => ele);
   updatedBoardOccupied[y * parseInt(columns / ENTRY_SIZE) + x] = 1;
 
-  req.body = {
-    board: { data: updatedBoard },
-    occupied: { data: updatedBoardOccupied },
-    ready: updatedBoardOccupied.every((ele) => ele != 0),
-  };
+  req.body.board = { data: updatedBoard };
+  req.body.occupied = { data: updatedBoardOccupied };
+  req.body.ready = updatedBoardOccupied.every((ele) => ele != 0);
 
   next();
 };
 
 async function applyFilter(data, info) {
-  const image = new Float32Array(data.buffer);
+  const pixelArray = new Float32Array(data.buffer);
   const { width, height, channels, size } = info;
 
-  const clusters = kMean(image, info, PALETTE_SIZE);
+  const clusters = kMean(pixelArray, info, PALETTE_SIZE);
+  const colors = [];
 
   clusters.forEach((cluster) => {
+    const { l, a, b } = cluster.centroid;
+    const rgbCentroid = labToRgb([l, a, b]);
+    colors.push({
+      color: rgbCentroid,
+      weight: cluster.points.length / (width * height),
+    });
     cluster.points.forEach((i) => {
-      image[i] = cluster.centroid.l;
-      image[i + 1] = cluster.centroid.a;
-      image[i + 2] = cluster.centroid.b;
+      for (let c = 0; c < channels; c++) {
+        if (c < rgbCentroid.length)
+          pixelArray[i + c] = parseInt(rgbCentroid[c]);
+      }
     });
   });
-  return image;
+  return { pixelArray, colors };
 }
 
-async function updateBoardWithUserImage(req, res, next) {
-  const { file } = req.body;
+function uniqueSort(arr) {
+  arr.sort((a, b) => b.weight - a.weight);
+  const ret = [{ color: arr[0].color, weight: arr[0].weight }];
+  for (let i = 1; i < arr.length; i++) {
+    const c1 = arr[i].color;
+    const c2 = arr[i - 1].color;
+    for (let j = 0; j < c1.length; j++) {
+      if (Math.abs(c1[j] - c2[j]) > EPS) {
+        ret.push({ color: c1, weight: arr[i].weight });
+        break;
+      }
+    }
+  }
 
+  return ret;
+}
+
+async function _updateBoardWithUserImage(req, res, next) {
+  const { file, palette, boardOccupied, id } = req.body;
+
+  const filePath = id + "/" + file;
+
+  // remove background
   const pythonShellOptions = {
     pythonOptions: ["-u"],
     pythonPath: "/Users/jackli/.pyenv/versions/3.10.11/bin/python/",
     args: [
-      file,
+      filePath,
       process.env.S3_BUCKET,
       process.env.ACCESS_KEY,
       process.env.SECRET_ACCESS_KEY,
     ],
   };
 
-  await PythonShell.run(
+  const pyShell = new PythonShell(
     "background-remover/remove.py",
     pythonShellOptions
-  ).then((results) => {
-    console.log(results);
+  );
+
+  pyShell.on("error", function (err) {
+    console.error(err);
+  });
+
+  pyShell.end(function (err, code, signal) {
+    if (err) throw err;
+    console.log("The exit code was: " + code);
+    console.log("The exit signal was: " + signal);
+    console.log("finished");
   });
 
   // get image from s3 and convert to byte stream
-  const imageFromS3 = await getImage(file);
+  const imageFromS3 = await getImage(filePath);
 
   // resize and blur image using sharp
   const { data, info } = await sharp(imageFromS3)
     .resize({ fit: sharp.fit.contain, width: 400 })
     .modulate({
-      saturation: 3,
+      saturation: 2,
     })
     .gamma()
     .trim()
     .median()
     .toColorspace("lab")
     .raw({ depth: "float" })
-    .toBuffer({ resolveWithObject: true });
+    .toBuffer({ resolveWithObject: true })
+    .then(console.log("image processed fine"))
+    .catch((error) => {
+      console.log(error);
+    });
 
   // manually process image
-  const pixelArray = await applyFilter(data, info);
+  const { pixelArray, colors } = await applyFilter(data, info);
 
-  const rgbPixelArray = await labArrayToRgb(pixelArray, info.channels);
+  // sort colors by weight and put it in req body
+  req.body.palette = { data: [...palette, ...colors] };
+
+  const newPalette = uniqueSort(req.body.palette.data);
+  req.body.palette.data = newPalette;
+  if (req.body.palette.data.length > boardOccupied.length) {
+    req.body.palette.data.splice(boardOccupied.length);
+  }
 
   // convert raw data to buffer
   const { width, height, channels } = info;
 
-  const imageToS3 = await sharp(rgbPixelArray, {
+  // put image to s3
+  const imageToS3 = await sharp(new Uint8ClampedArray(pixelArray), {
     raw: { width, height, channels },
   })
     .toFormat("png")
-    .toBuffer();
+    .toBuffer()
+    .then(console.log("image to s3 fine"))
+    .catch((error) => {
+      console.log(error);
+    });
 
-  // put image to s3
-  await putImage(imageToS3, file);
+  await putImage(imageToS3, filePath);
 
+  next();
+}
+
+async function emptyS3Directory(req, res, next) {
+  const id = parseInt(req.params.id);
+  const listParams = {
+    Bucket: process.env.S3_BUCKET,
+    Prefix: `${id}/`,
+  };
+
+  const listCommand = new ListObjectsV2Command(listParams);
+  const listedObjects = await s3.send(listCommand);
+
+  if (listedObjects.Contents.length === 0) return;
+
+  for (let i = 0; i < listedObjects.Contents.length; i++) {
+    const { Key } = listedObjects.Contents[i];
+    const deleteParams = {
+      Bucket: process.env.S3_BUCKET,
+      Key,
+    };
+
+    const deleteCommand = new DeleteObjectCommand(deleteParams);
+    await s3.send(deleteCommand);
+  }
+
+  if (listedObjects.IsTruncated) await emptyS3Directory(req, res, next);
+
+  next();
+}
+
+async function updateBoardWithUserImage(req, res, next) {
+  try {
+    _updateBoardWithUserImage(req, res, next);
+  } catch (e) {
+    console.log(e);
+    res.status(401).send();
+    return next(e);
+  }
   next();
 }
 
@@ -168,4 +264,5 @@ module.exports = {
   createValidBoard,
   updateBoardWithUserEntry,
   updateBoardWithUserImage,
+  emptyS3Directory,
 };

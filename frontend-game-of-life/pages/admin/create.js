@@ -1,8 +1,11 @@
-import React, { useState, useId } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 
-import { TextField, Button } from "@mui/material";
-import { Box } from "@mui/system";
+import { TextField, Button, Box, Typography } from "@mui/material";
+import { useSession, signIn } from "next-auth/react";
+
+import Header from "../../containers/Header";
+import { BorderBox, PrimaryButton } from "../../components/StyledComponents";
 
 export default function Create() {
   const [row, setRow] = useState("");
@@ -10,6 +13,8 @@ export default function Create() {
   const [name, setName] = useState("");
   const [nameError, setNameError] = useState(false);
   const [error, setError] = useState(false);
+
+  const { data: session } = useSession();
 
   const handleChangeRow = (event) => {
     setRow(event.target.value);
@@ -60,35 +65,48 @@ export default function Create() {
 
   return (
     <Box>
-      <div>set the size of the game of life board</div>
-      <TextField
-        error={error}
-        id="row"
-        label="Num Rows"
-        variant="outlined"
-        value={row}
-        onChange={handleChangeRow}
-        defaultValue="5"
-      />
-      <TextField
-        error={error}
-        id="col"
-        label="Num Cols"
-        variant="outlined"
-        value={col}
-        onChange={handleChangeCol}
-        defaultValue="5"
-      />
-      <TextField
-        error={nameError}
-        label="Name"
-        variant="outlined"
-        value={name}
-        onChange={handleChangeName}
-      />
-      <Button variant="outlined" onClick={createNewBoard}>
-        create!
-      </Button>
+      <div style={{ position: "sticky", top: 0 }}>
+        <Header />
+      </div>
+      <BorderBox center>
+        <Typography variant="body1">create game of life board</Typography>
+        {session ? (
+          <>
+            <TextField
+              error={error}
+              id="row"
+              label="Num Rows"
+              variant="outlined"
+              value={row}
+              onChange={handleChangeRow}
+              defaultValue="5"
+            />
+            <TextField
+              error={error}
+              id="col"
+              label="Num Cols"
+              variant="outlined"
+              value={col}
+              onChange={handleChangeCol}
+              defaultValue="5"
+            />
+            <TextField
+              error={nameError}
+              label="Name"
+              variant="outlined"
+              value={name}
+              onChange={handleChangeName}
+            />
+            <PrimaryButton onClick={createNewBoard}>
+              <Typography varaint="body1">create!</Typography>
+            </PrimaryButton>
+          </>
+        ) : (
+          <PrimaryButton sx={{ minWidth: "70vw" }} onClick={signIn}>
+            <Typography variant="h6">Sign in</Typography>
+          </PrimaryButton>
+        )}
+      </BorderBox>
     </Box>
   );
 }

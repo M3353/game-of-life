@@ -7,6 +7,7 @@ const {
   createValidBoard,
   updateBoardWithUserEntry,
   updateBoardWithUserImage,
+  emptyS3Directory,
 } = require("./src/middleware");
 const { broadcast } = require("./src/websocket-utils");
 const app = express();
@@ -34,6 +35,7 @@ function setupWebsocket(server) {
 
 // middleware
 app.use(cors());
+
 app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({
@@ -49,11 +51,16 @@ app.get("/", (req, res) => {
 // queries
 app.get("/boards", queries.getBoards);
 app.get("/boards/:id", queries.getBoardById);
-app.put("/boards/:id", updateBoardWithUserEntry, queries.updateBoard);
+app.put(
+  "/boards/:id",
+  updateBoardWithUserImage,
+  updateBoardWithUserEntry,
+  queries.updateBoard
+);
 
 app.post("/admin", queries.incrementBoard);
 app.post("/admin/:id", createValidBoard, queries.createBoard);
-app.delete("/admin/:id", queries.deleteBoard);
+app.delete("/admin/:id", emptyS3Directory, queries.deleteBoard);
 
 const server = app.listen(port, () => {
   console.log(`App running on port ${port}.`);

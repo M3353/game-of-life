@@ -1,18 +1,24 @@
 import react, { useState, useEffect } from "react";
-import { Box } from "@mui/system";
 import {
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Button,
+  Box,
+  Typography,
 } from "@mui/material";
 import axios from "axios";
+import { useSession, signIn } from "next-auth/react";
+
+import Header from "../../containers/Header";
+import { BorderBox, PrimaryButton } from "../../components/StyledComponents";
 
 export default function Delete() {
   const [data, setData] = useState();
   const [id, setId] = useState();
   const url = process.env.NEXT_PUBLIC_URL;
+
+  const { data: session } = useSession();
 
   function fetchData() {
     const endpoint = `${url}/boards`;
@@ -40,27 +46,40 @@ export default function Delete() {
   return (
     data != null && (
       <Box sx={{ minWidth: 150, flexDirection: "column" }}>
-        <FormControl fullWidth>
-          <InputLabel id="select-board-label">Select Board ID</InputLabel>
-          <Select
-            labelId="select-board-label"
-            id="select-board"
-            value={id}
-            label="Id"
-            onChange={handleSelectBoard}
-          >
-            {data.map((entry, i) => {
-              return (
-                <MenuItem key={i} value={entry.id}>
-                  {entry.name}
-                </MenuItem>
-              );
-            })}
-          </Select>
-        </FormControl>
-        <Button onClick={deleteBoard} variant="outlined">
-          Delete
-        </Button>
+        <div style={{ position: "sticky", top: 0 }}>
+          <Header />
+        </div>
+        <BorderBox center>
+          {session ? (
+            <>
+              <FormControl fullWidth>
+                <InputLabel id="select-board-label">Select Board ID</InputLabel>
+                <Select
+                  labelId="select-board-label"
+                  id="select-board"
+                  value={id}
+                  label="Id"
+                  onChange={handleSelectBoard}
+                >
+                  {data.map((entry, i) => {
+                    return (
+                      <MenuItem key={i} value={entry.id}>
+                        {entry.name}
+                      </MenuItem>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+              <PrimaryButton onClick={deleteBoard} variant="outlined">
+                Delete
+              </PrimaryButton>
+            </>
+          ) : (
+            <PrimaryButton sx={{ minWidth: "70vw" }} onClick={signIn}>
+              <Typography variant="h6">Sign in</Typography>
+            </PrimaryButton>
+          )}
+        </BorderBox>
       </Box>
     )
   );

@@ -1,26 +1,29 @@
 import { Stage } from "@pixi/react";
 import React, { useState, useEffect } from "react";
-import useWindowDimensions from "../../src/useWindowDimensions";
-import { palettes } from "../../src/colors";
+import { useGameContext } from "../../src/GameContext";
 import {
   GameOfLifeGrid,
   GameOfLifeImages,
+  GameOfLifeCircles,
+  GameOfLifeTruncatedCircles,
 } from "./components/BoardGraphicsComponents";
 
 const BoardGraphics = (props) => {
-  const { data, imageUrls } = props;
+  const { data, imageUrls, id } = props;
   const [mounted, setMounted] = useState(false);
-  const [palette, setPalette] = useState({});
 
   useEffect(() => {
     setMounted(true);
-    setPalette(palettes.lavender);
   }, []);
 
   const { rows, columns } = data;
-  let { height } = useWindowDimensions();
+  const ctx = useGameContext();
+  let { width, height } = ctx;
+
+  width = width > height ? (columns / rows) * height : width;
+  height = height > width ? (rows / columns) * width : height;
+  width *= 0.85;
   height *= 0.85;
-  const width = (columns / rows) * height;
   const xDim = width / columns;
   const yDim = height / rows;
 
@@ -28,13 +31,11 @@ const BoardGraphics = (props) => {
     <>
       {mounted && (
         <Stage width={width} height={height}>
-          <GameOfLifeGrid
-            data={data}
-            palette={palette}
-            xDim={xDim}
-            yDim={yDim}
-          />
+          <GameOfLifeGrid data={data} xDim={xDim} yDim={yDim} />
+          <GameOfLifeCircles data={data} xDim={xDim} yDim={yDim} />
+          <GameOfLifeTruncatedCircles data={data} xDim={xDim} yDim={yDim} />
           <GameOfLifeImages
+            id={id}
             data={data}
             imageUrls={imageUrls}
             xDim={xDim}

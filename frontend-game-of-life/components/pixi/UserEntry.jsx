@@ -1,15 +1,28 @@
+import React, { useCallback, useState, useEffect, useRef } from "react";
+
 import "@pixi/events";
 import { Stage, Graphics } from "@pixi/react";
 import { Box } from "@mui/material";
 
-import React, { useCallback, useState, useEffect, useRef } from "react";
-import useWindowDimensions from "../../src/useWindowDimensions";
+import { useGameContext } from "../../src/GameContext";
 
 const COLS = 5;
 const ROWS = 5;
 
 function UserEntryCell(props) {
-  const { x, y, width, height, mouseDown, lastTouches, submission, id } = props;
+  const {
+    x,
+    y,
+    width,
+    height,
+    mouseDown,
+    lastTouches,
+    submission,
+    id,
+    loading,
+    colors,
+  } = props;
+  const { primary, background } = colors;
   const [changedBoard, setChangedBoard] = useState(false);
 
   const xDim = width / COLS;
@@ -33,16 +46,16 @@ function UserEntryCell(props) {
         setChangedBoard(false);
       }
 
-      g.beginFill(0xffffff, 1);
+      g.beginFill(background, 1);
       g.drawRect(xDim * x, yDim * y, xDim, yDim);
       g.endFill();
 
       const handleToggleCell = () => {
         entry[idx] ^= 1;
-        g.tint = entry[idx] == 1 ? 0x000000 : 0xffffff;
+        g.tint = entry[idx] == 1 ? primary : 0xffffff;
       };
 
-      g.eventMode = "static";
+      g.eventMode = loading ? "none" : "static";
       g.addEventListener("mousedown", (e) => {
         handleToggleCell();
       });
@@ -52,31 +65,29 @@ function UserEntryCell(props) {
         }
       });
 
-      // touch events
-      g.on("touchstart", (e) => {
-        const touchEvent = e.data.originalEvent;
-        touchEvent.preventDefault();
-        [...touchEvent.changedTouches].forEach((touch) => {
-          handleToggleCell();
-        });
-      });
-
       if ([...lastTouches.values()].includes(idx)) handleToggleCell();
     },
-    [width, height, changedBoard, lastTouches]
+    [width, height, changedBoard, lastTouches, loading]
   );
 
   return <Graphics draw={draw} />;
 }
 
 export default function UserEntry(props) {
-  const { submission, id } = props;
+  const { submission, id, setStageWidth } = props;
   const [mounted, setMounted] = useState(false);
   const [lastTouches, setLastTouches] = useState(new Map());
   const mouseDown = useRef(false);
-  let { width } = useWindowDimensions();
+  const ctx = useGameContext();
+  let { width, height, colors } = ctx;
+  const { primary } = ctx.colors;
+
+  width = width > height ? (COLS / ROWS) * height : width;
+  height = height > width ? (ROWS / COLS) * width : height;
   width *= 0.7;
-  const height = (ROWS / COLS) * width;
+  height *= 0.7;
+
+  setStageWidth(width);
 
   useEffect(() => {
     setMounted(true);
@@ -89,10 +100,10 @@ export default function UserEntry(props) {
     mouseDown.current = false;
   };
 
-  const handleOnTouchMove = (e) => {
+  const handleOnTouchStartMove = (e) => {
     const stageOffsetX = e.target.offsetLeft;
     const stageOffsetY = e.target.offsetTop;
-    [...e.touches].forEach((touch) => {
+    [...e.changedTouches].forEach((touch) => {
       const idx =
         parseInt((touch.pageY - stageOffsetY) / (height / ROWS)) * COLS +
         parseInt((touch.pageX - stageOffsetX) / (width / COLS));
@@ -109,7 +120,7 @@ export default function UserEntry(props) {
   const drawBorder = useCallback(
     (g) => {
       g.clear();
-      g.lineStyle(5, 0x000000, 1);
+      g.lineStyle(6, primary, 1);
       g.drawRect(0, 0, width, height);
     },
     [props, height]
@@ -121,10 +132,11 @@ export default function UserEntry(props) {
         <Stage
           width={width}
           height={height}
-          options={{ backgroundColor: 0xffffff, antialias: true }}
+          options={{ backgroundAlpha: 0, antialias: true }}
           onMouseDown={handleMouseDown}
           onMouseUp={handleMouseUp}
-          onTouchMove={handleOnTouchMove}
+          onTouchMove={handleOnTouchStartMove}
+          onTouchStart={handleOnTouchStartMove}
           onTouchEnd={handleOnTouchEnd}
         >
           {submission.current.entry.map((e, i) => (
@@ -138,6 +150,7 @@ export default function UserEntry(props) {
               mouseDown={mouseDown}
               lastTouches={lastTouches}
               submission={submission}
+              colors={colors}
             />
           ))}
           <Graphics draw={drawBorder} />
