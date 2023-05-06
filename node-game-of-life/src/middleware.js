@@ -149,7 +149,11 @@ async function handleSubmitImageError(key) {
   console.log(`deleted image with key ${key}`);
 }
 
-async function removeBackground(filePath) {
+async function removeBackgroundFromUserImage(req, res, next) {
+  const { file, id } = req.body;
+
+  const filePath = id + "/" + file;
+
   // remove background
   const pythonShellOptions = {
     pythonOptions: ["-u"],
@@ -162,33 +166,26 @@ async function removeBackground(filePath) {
     ],
   };
 
-  const pyShell = new PythonShell(
-    "background-remover/remove.py",
-    pythonShellOptions
-  );
+  try {
+    await PythonShell.run(
+      "background-remover/remove.py",
+      pythonShellOptions
+    ).then((results) => console.log(results));
+  } catch (err) {
+    handleSubmitImageError(filePath);
+    res.status(401).send({
+      message: `[ERROR] error when attempting to remove background ${filePath}`,
+    });
+    return next(err);
+  }
 
-  pyShell.end(function (err, code, signal) {
-    if (err) throw err;
-    console.log("The exit code was: " + code);
-    console.log("The exit signal was: " + signal);
-    console.log("finished");
-  });
+  next();
 }
 
 async function updateBoardWithUserImage(req, res, next) {
   const { file, palette, boardOccupied, id } = req.body;
 
   const filePath = id + "/" + file;
-
-  try {
-    await removeBackground(filePath);
-  } catch (e) {
-    handleSubmitImageError(filePath);
-    res.status(401).send({
-      message: `[ERROR] error ${err} when attempting to remove background ${filePath}`,
-    });
-    return next(e);
-  }
 
   // get image from s3 and convert to byte stream
   const imageFromS3 = await getImage(filePath);
@@ -274,6 +271,7 @@ async function emptyS3Directory(req, res, next) {
 
 module.exports = {
   createValidBoard,
+  removeBackgroundFromUserImage,
   updateBoardWithUserEntry,
   updateBoardWithUserImage,
   emptyS3Directory,

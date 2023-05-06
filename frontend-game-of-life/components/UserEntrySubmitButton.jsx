@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import axios from "axios";
 import { CircularProgress, Typography, Tooltip } from "@mui/material";
 
@@ -18,6 +18,8 @@ const UserEntrySubmitButton = (props) => {
     setLoading,
     location,
     numFilled,
+    setError,
+    setOpen,
   } = props;
   const { board, occupied, entry, palette } = submission.current;
   const { rows, columns } = dimensions.current;
@@ -68,13 +70,15 @@ const UserEntrySubmitButton = (props) => {
           setSubmitted(true);
           fetchData();
         })
-        .catch((e) => {
-          if (e.response) console.log(e.response.data);
-          else if (e.request) console.log(e.request);
-          else console.log(e);
+        .catch((err) => {
+          if (err.response) console.log(err.response.data);
+          else if (err.request) console.log(err.request);
+          else console.log(err);
+          throw err;
         });
-    } catch (e) {
-      console.log(e);
+    } catch (err) {
+      setError(err);
+      setOpen(true);
     }
 
     setLoading(false);

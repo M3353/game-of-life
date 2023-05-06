@@ -8,6 +8,7 @@ const {
   updateBoardWithUserEntry,
   updateBoardWithUserImage,
   emptyS3Directory,
+  removeBackgroundFromUserImage,
 } = require("./src/middleware");
 const { broadcast } = require("./src/websocket-utils");
 const app = express();
@@ -53,6 +54,7 @@ app.get("/boards", queries.getBoards);
 app.get("/boards/:id", queries.getBoardById);
 app.put(
   "/boards/:id",
+  removeBackgroundFromUserImage,
   updateBoardWithUserImage,
   updateBoardWithUserEntry,
   queries.updateBoard

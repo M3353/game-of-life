@@ -27,16 +27,13 @@ def image_to_s3(output):
     image_to_s3_data = image_to_s3_data.getvalue()
     s3.put_object(Body=image_to_s3_data, Bucket=BUCKET, Key=KEY, ContentType='image/png')
 
-def main():
+if __name__ == "__main__":
     input_img = image_from_s3()
     try:
         output_img = remove(input_img)
     except:
-        print("an error occured during background removal")
+        print("error")
     else:
         image_to_s3(output_img)
     finally:
         input_img.close()
-
-if __name__ == "__main__":
-    main()
