@@ -19,8 +19,8 @@ export default function UserSubmitPage() {
   function fetchData() {
     const url =
       process.env.NODE_ENV == "production"
-        ? `${process.env.NEXT_PUBLIC_URL.replace("http", "https://")}`
-        : process.env.NEXT_PUBLIC_URL;
+        ? `https://${process.env.NEXT_PUBLIC_URL}`
+        : `http://${process.env.NEXT_PUBLIC_URL}`;
 
     const endpoint = `${url}/boards/`;
     axios

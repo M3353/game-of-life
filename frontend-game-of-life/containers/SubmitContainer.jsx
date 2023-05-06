@@ -215,6 +215,11 @@ export default function SubmitContainer(props) {
                   setLocation={setLocation}
                 />
               </div>
+              <div className={styles.submitChildren}>
+                <Typography variant="body1" sx={{ m: 1 }}>
+                  {instructions.image}
+                </Typography>
+              </div>
               <input
                 hidden
                 accept="image/*"
@@ -224,16 +229,15 @@ export default function SubmitContainer(props) {
                 onChange={handleUploadImage}
               />
               <label htmlFor="image-input">
-                <Typography variant="body1" sx={{ m: 1 }}>
-                  {instructions.image}
-                </Typography>
-                <PrimaryButton
-                  sx={{ width: "50vw" }}
-                  component="span"
-                  disabled={loading}
-                >
-                  <Typography variant="h6">Upload Image</Typography>
-                </PrimaryButton>
+                <div className={styles.submitChildren}>
+                  <PrimaryButton
+                    sx={{ width: "50vw" }}
+                    component="span"
+                    disabled={loading}
+                  >
+                    <Typography variant="h6">Upload Image</Typography>
+                  </PrimaryButton>
+                </div>
               </label>
               <img
                 src={image.url}

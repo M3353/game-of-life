@@ -35,7 +35,10 @@ const UserEntrySubmitButton = (props) => {
   }, [file.img, numFilled, loading, location]);
 
   async function handleSubmit() {
-    const url = process.env.NEXT_PUBLIC_URL;
+    const url =
+      process.env.NODE_ENV == "production"
+        ? `https://${process.env.NEXT_PUBLIC_URL}`
+        : `http://${process.env.NEXT_PUBLIC_URL}`;
     const endpoint = `${url}/boards/${id}`;
     const data = {
       boardOccupied: occupied,

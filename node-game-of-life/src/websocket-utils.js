@@ -7,16 +7,7 @@ const inBoard = (x, y, nr, nc) => {
 };
 
 const incrementBoardHelper = (entry) => {
-  const {
-    board,
-    rows,
-    columns,
-    name,
-    id,
-    occupied,
-    ready,
-    highDensityRegions,
-  } = entry;
+  const { board, rows, columns } = entry;
 
   const offsets = [
     [0, -1],
@@ -52,7 +43,7 @@ const incrementBoardHelper = (entry) => {
         ? 1
         : 0;
 
-    sum += ele;
+    sum += newEle;
     return newEle;
   });
 
@@ -127,7 +118,7 @@ const getSumSnakewiseIterateRegion = (
 };
 
 const getHighDensityRegions = (entry) => {
-  const { board, rows, columns, name, id, occupied, ready } = entry;
+  const { rows, columns } = entry;
   let highDensityRegions = [];
 
   const regionSize = ENTRY_SIZE;
@@ -206,9 +197,6 @@ const getHighDensityRegions = (entry) => {
   highDensityRegions.sort((a, b) => {
     return b.sum - a.sum;
   });
-  if (highDensityRegions.length > occupied.data.length) {
-    highDensityRegions.splice(occupied.data.length);
-  }
 
   entry.highDensityRegions = { data: highDensityRegions };
   return entry;
@@ -220,6 +208,7 @@ const getHighDensityRegionsAllBoards = (boards) => {
       ? getHighDensityRegions(entry)
       : entry;
   });
+
   return allBoardsHighDensityRegions;
 };
 
@@ -237,7 +226,10 @@ async function waitInterval(callback, ms) {
 }
 
 async function updateBoardWithIncremented(data) {
-  const postURL = `${process.env.NEXT_PUBLIC_URL}/admin`;
+  const postURL =
+    process.env.NODE_ENV == "production"
+      ? `https://${process.env.NEXT_PUBLIC_URL}/admin`
+      : `http://${process.env.NEXT_PUBLIC_URL}/admin`;
   for (const entry of data) {
     const incrementedBoard = {
       board: entry.board,

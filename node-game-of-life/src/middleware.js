@@ -157,13 +157,15 @@ async function removeBackgroundFromUserImage(req, res, next) {
   // remove background
   const pythonShellOptions = {
     pythonOptions: ["-u"],
-    pythonPath: "/Users/jackli/.pyenv/versions/3.10.11/bin/python/",
     args: [
       filePath,
       process.env.S3_BUCKET,
       process.env.ACCESS_KEY,
       process.env.SECRET_ACCESS_KEY,
     ],
+    ...(process.env.NODE_ENV === "development" && {
+      pythonPath: "/Users/jackli/.pyenv/versions/3.10.11/bin/python/",
+    }),
   };
 
   try {

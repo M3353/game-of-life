@@ -82,7 +82,6 @@ async function getBoardById(req, res) {
         id: id,
       },
     });
-    console.log(fetchedBoard);
     res.status(200).json(fetchedBoard);
   } catch (e) {
     throw e;

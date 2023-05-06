@@ -6,7 +6,6 @@ import CollectionsIcon from "@mui/icons-material/Collections";
 import BoardGraphics from "../components/pixi/BoardGraphics";
 import { useGameContext } from "../src/GameContext";
 import { getS3FileURL } from "../components/utils";
-import { TextButton } from "../components/StyledComponents";
 
 const BoardsContainer = (props) => {
   const { data, fetchData, ws } = props;
