@@ -14,13 +14,19 @@ export default function Boards() {
   const [data, setData] = useState([]);
   const [mounted, setMounted] = useState(false);
 
-  const url = process.env.NEXT_PUBLIC_URL;
+  const socketUrl =
+    process.env.NODE_ENV == "production"
+      ? `ws://${process.env.NEXT_PUBLIC_URL}`
+      : `ws://${process.env.NEXT_PUBLIC_URL}`;
+
   const ws = useWebSocket({
-    socketUrl:
-      process.env.NODE_ENV == "production"
-        ? `ws://${process.env.NEXT_PUBLIC_URL.replace("https://", "")}`
-        : `ws://${process.env.NEXT_PUBLIC_URL.replace("http://", "")}`,
+    socketUrl,
   });
+
+  const url =
+    process.env.NODE_ENV == "production"
+      ? `https://${process.env.NEXT_PUBLIC_URL}`
+      : `http://${process.env.NEXT_PUBLIC_URL}`;
 
   function fetchData() {
     const endpoint = `${url}/boards`;

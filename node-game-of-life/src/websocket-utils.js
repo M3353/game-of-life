@@ -127,7 +127,7 @@ const getHighDensityRegions = (entry) => {
 
   let incrementedRow = false;
   // snakewise pass
-  for (let i = radius; i < rows - radius; i += increment) {
+  for (let i = radius; i <= rows - radius; i += increment) {
     // handle first case
     let j = radius;
     if (highDensityRegions.length == 0) {
@@ -143,7 +143,7 @@ const getHighDensityRegions = (entry) => {
     let sum;
 
     if (i % 2 == 0) {
-      for (; j < columns - radius; j += increment) {
+      for (; j <= columns - radius; j += increment) {
         if (incrementedRow) {
           incrementedRow = false;
           sum = getSumSnakewiseTurnRegion(
@@ -230,6 +230,7 @@ async function updateBoardWithIncremented(data) {
     process.env.NODE_ENV == "production"
       ? `https://${process.env.NEXT_PUBLIC_URL}/admin`
       : `http://${process.env.NEXT_PUBLIC_URL}/admin`;
+
   for (const entry of data) {
     const incrementedBoard = {
       board: entry.board,
@@ -241,7 +242,11 @@ async function updateBoardWithIncremented(data) {
 }
 
 async function broadcast(clients) {
-  const url = `${process.env.NEXT_PUBLIC_URL}/boards`;
+  const url =
+    process.env.NODE_ENV == "production"
+      ? `https://${process.env.NEXT_PUBLIC_URL}/boards`
+      : `http://${process.env.NEXT_PUBLIC_URL}/boards`;
+
   await waitInterval(async function () {
     const res = await axios.get(url);
 

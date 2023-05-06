@@ -5,6 +5,7 @@ import {
   GameOfLifeGrid,
   GameOfLifeImages,
   GameOfLifeCircles,
+  GameOfLifeSquares,
   GameOfLifeTruncatedCircles,
 } from "./components/BoardGraphicsComponents";
 
@@ -32,8 +33,6 @@ const BoardGraphics = (props) => {
       {mounted && (
         <Stage width={width} height={height}>
           <GameOfLifeGrid data={data} xDim={xDim} yDim={yDim} />
-          <GameOfLifeCircles data={data} xDim={xDim} yDim={yDim} />
-          <GameOfLifeTruncatedCircles data={data} xDim={xDim} yDim={yDim} />
           <GameOfLifeImages
             id={id}
             data={data}
@@ -41,6 +40,9 @@ const BoardGraphics = (props) => {
             xDim={xDim}
             yDim={yDim}
           />
+          <GameOfLifeSquares data={data} xDim={xDim} yDim={yDim} />
+          <GameOfLifeCircles data={data} xDim={xDim} yDim={yDim} />
+          <GameOfLifeTruncatedCircles data={data} xDim={xDim} yDim={yDim} />
         </Stage>
       )}
     </>

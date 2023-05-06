@@ -2,6 +2,50 @@ import React, { useState, useCallback, useEffect } from "react";
 import { Graphics, Sprite } from "@pixi/react";
 import { toColor, toInvertedColor } from "./utils";
 
+const GameOfLifeSquares = (props) => {
+  const { data, xDim, yDim } = props;
+  const { columns, highDensityRegions, palette } = data;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const draw = useCallback(
+    (x, y, color, sum) => (g) => {
+      const xCoord = x * xDim;
+      const yCoord = y * yDim;
+      g.clear();
+      g.lineStyle(Math.log(xDim), color);
+      g.drawRect(
+        xCoord - xDim / 2,
+        yCoord - yDim / 2,
+        (sum * sum * Math.log(xDim)) % (xDim * Math.log(xDim)),
+        (sum * sum * Math.log(yDim)) % (yDim * Math.log(yDim))
+      );
+      g.endFill();
+    },
+    [xDim, yDim, data]
+  );
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  return (
+    <>
+      {mounted &&
+        highDensityRegions.data.map((val, i) => {
+          const { idx, sum } = val;
+          const x = idx % columns;
+          const y = parseInt(idx / columns);
+          const color = palette.data[i % palette.data.length].color;
+          return <Graphics draw={draw(x, y, toInvertedColor(color), sum)} />;
+        })}
+    </>
+  );
+};
+
 const GameOfLifeTruncatedCircles = (props) => {
   const { data, xDim, yDim } = props;
   const { columns, highDensityRegions, palette, occupied } = data;
@@ -185,5 +229,6 @@ module.exports = {
   GameOfLifeGrid,
   GameOfLifeImages,
   GameOfLifeCircles,
+  GameOfLifeSquares,
   GameOfLifeTruncatedCircles,
 };
