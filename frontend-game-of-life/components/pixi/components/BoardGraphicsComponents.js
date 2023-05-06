@@ -15,16 +15,11 @@ const GameOfLifeSquares = (props) => {
     (x, y, color, sum) => (g) => {
       const xCoord = x * xDim;
       const yCoord = y * yDim;
+      const width = (sum * sum * Math.log(xDim)) % (xDim * Math.log(xDim));
+      const height = (sum * sum * Math.log(yDim)) % (yDim * Math.log(yDim));
       g.clear();
       g.lineStyle(Math.log(xDim), color);
-      g.drawRect(
-        xCoord - xDim / 2,
-        yCoord - yDim / 2,
-        100,
-        100
-        // (sum * sum * Math.log(xDim)) % (xDim * Math.log(xDim)),
-        // (sum * sum * Math.log(yDim)) % (yDim * Math.log(yDim))
-      );
+      g.drawRect(xCoord - width / 2, yCoord - height / 2, width, height);
       g.endFill();
     },
     [xDim, yDim, data]

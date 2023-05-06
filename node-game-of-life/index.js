@@ -12,7 +12,7 @@ const {
 } = require("./src/middleware");
 const { broadcast } = require("./src/websocket-utils");
 const app = express();
-const port = process.env.PORT || 5431;
+const port = process.env.PORT;
 
 function setupWebsocket(server) {
   const wsServer = new ws.Server({ noServer: true });

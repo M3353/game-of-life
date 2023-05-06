@@ -33,6 +33,7 @@ export default function Boards() {
     axios
       .get(endpoint)
       .then((res) => {
+        console.log(res.data);
         const newData = [...res.data];
         setData(newData);
       })
