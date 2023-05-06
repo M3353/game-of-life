@@ -20,8 +20,10 @@ const GameOfLifeSquares = (props) => {
       g.drawRect(
         xCoord - xDim / 2,
         yCoord - yDim / 2,
-        (sum * sum * Math.log(xDim)) % (xDim * Math.log(xDim)),
-        (sum * sum * Math.log(yDim)) % (yDim * Math.log(yDim))
+        100,
+        100
+        // (sum * sum * Math.log(xDim)) % (xDim * Math.log(xDim)),
+        // (sum * sum * Math.log(yDim)) % (yDim * Math.log(yDim))
       );
       g.endFill();
     },
@@ -40,7 +42,9 @@ const GameOfLifeSquares = (props) => {
           const x = idx % columns;
           const y = parseInt(idx / columns);
           const color = palette.data[i % palette.data.length].color;
-          return <Graphics draw={draw(x, y, toInvertedColor(color), sum)} />;
+          return (
+            <Graphics key={i} draw={draw(x, y, toInvertedColor(color), sum)} />
+          );
         })}
     </>
   );
@@ -80,7 +84,9 @@ const GameOfLifeTruncatedCircles = (props) => {
           const x = idx % columns;
           const y = parseInt(idx / columns);
           const color = palette.data[i % palette.data.length].color;
-          return <Graphics draw={draw(x, y, toInvertedColor(color), sum)} />;
+          return (
+            <Graphics key={i} draw={draw(x, y, toInvertedColor(color), sum)} />
+          );
         })}
     </>
   );
@@ -121,7 +127,12 @@ const GameOfLifeCircles = (props) => {
             const x = idx % columns;
             const y = parseInt(idx / columns);
             const color = palette.data[i % palette.data.length].color;
-            return <Graphics draw={draw(x, y, toInvertedColor(color), sum)} />;
+            return (
+              <Graphics
+                key={i}
+                draw={draw(x, y, toInvertedColor(color), sum)}
+              />
+            );
           })}
     </>
   );

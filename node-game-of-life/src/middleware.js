@@ -7,7 +7,7 @@ const {
 
 const { kMean } = require("./filters");
 const { getImage, putImage } = require("./s3-client");
-const { ENTRY_SIZE, PALETTE_SIZE, EPS } = require("./data");
+const { ENTRY_SIZE, PALETTE_SIZE, EPS } = require("./constants");
 const { labToRgb } = require("./filters-utils");
 const { s3 } = require("./s3-client");
 

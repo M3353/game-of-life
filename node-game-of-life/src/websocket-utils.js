@@ -1,6 +1,6 @@
 require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
 const axios = require("axios");
-const { ENTRY_SIZE } = require("./data");
+const { ENTRY_SIZE, INCREMENT } = require("./constants");
 
 const inBoard = (x, y, nr, nc) => {
   return x >= 0 && y >= 0 && x < nc && y < nr;
@@ -72,22 +72,17 @@ const getSumFirstRegion = (regionSize, entry) => {
   return sum;
 };
 
-const getSumSnakewiseTurnRegion = (
-  regionSize,
-  entry,
-  increment,
-  prevSum,
-  i
-) => {
+const getSumSnakewiseTurnRegion = (regionSize, entry, prevSum, i, j) => {
   const { board, columns } = entry;
   const radius = parseInt(regionSize / 2);
   let sum = prevSum;
-  let start = i % 2 == 0 ? 0 : columns - regionSize;
+  const start = j - radius;
   const end = start + regionSize;
   for (let k = start; k < end; k++) {
-    for (let l = 0; l <= radius; l++) {
-      const topIdx = (i - increment - l) * columns + k;
-      const bottomIdx = (i + l) * columns + k;
+    for (let l = 1; l <= INCREMENT; l++) {
+      const topIdx = (i - radius - l) * columns + k;
+      const bottomIdx = (i + radius - INCREMENT + l) * columns + k;
+
       sum -= board.data[topIdx];
       sum += board.data[bottomIdx];
     }
@@ -95,23 +90,27 @@ const getSumSnakewiseTurnRegion = (
   return sum;
 };
 
-const getSumSnakewiseIterateRegion = (
-  radius,
-  entry,
-  increment,
-  prevSum,
-  i,
-  j
-) => {
+const getSumSnakewiseIterateRegionRight = (radius, entry, prevSum, i, j) => {
   const { board, columns } = entry;
   let sum = prevSum;
-  for (let k = -radius; k < radius; k++) {
-    for (let l = 0; l <= radius; l++) {
-      const leftIdx = (i + k) * columns + (j - increment - l);
-      const rightIdx = (i + k) * columns + (j + l);
-      sum = i % 2 === 0 ? sum - board.data[leftIdx] : sum + board.data[leftIdx];
-      sum =
-        i % 2 === 0 ? sum + board.data[rightIdx] : sum - board.data[rightIdx];
+  for (let k = -radius; k <= radius; k++) {
+    for (let l = 1; l <= INCREMENT; l++) {
+      const leftIdx = (i + k) * columns + (j - radius - l);
+      const rightIdx = (i + k) * columns + (j + radius - INCREMENT + l);
+      sum += board.data[rightIdx] - board.data[leftIdx];
+    }
+  }
+  return sum;
+};
+
+const getSumSnakewiseIterateRegionLeft = (radius, entry, prevSum, i, j) => {
+  const { board, columns } = entry;
+  let sum = prevSum;
+  for (let k = -radius; k <= radius; k++) {
+    for (let l = 1; l <= INCREMENT; l++) {
+      const leftIdx = (i + k) * columns + (j - radius + INCREMENT - l);
+      const rightIdx = (i + k) * columns + (j + radius + l);
+      sum += board.data[leftIdx] - board.data[rightIdx];
     }
   }
   return sum;
@@ -123,74 +122,54 @@ const getHighDensityRegions = (entry) => {
 
   const regionSize = ENTRY_SIZE;
   const radius = parseInt(regionSize / 2);
-  const increment = 2;
+  let rowIter = 0;
 
   let incrementedRow = false;
+  let j = radius;
+  let prevSum;
   // snakewise pass
-  for (let i = radius; i <= rows - radius; i += increment) {
+  for (let i = radius; i < rows - radius; i += INCREMENT) {
     // handle first case
-    let j = radius;
     if (highDensityRegions.length == 0) {
       const sum = getSumFirstRegion(regionSize, entry);
       highDensityRegions.push({
         sum,
         idx: radius * columns + radius,
       });
-      j += increment;
+      prevSum = sum;
+      j += INCREMENT;
     }
 
-    let prevSum = highDensityRegions[highDensityRegions.length - 1].sum;
     let sum;
 
-    if (i % 2 == 0) {
-      for (; j <= columns - radius; j += increment) {
+    if (rowIter % 2 == 0) {
+      for (; j < columns - radius; j += INCREMENT) {
         if (incrementedRow) {
           incrementedRow = false;
-          sum = getSumSnakewiseTurnRegion(
-            regionSize,
-            entry,
-            increment,
-            prevSum,
-            i
-          );
+          sum = getSumSnakewiseTurnRegion(regionSize, entry, prevSum, i, j);
         } else {
-          sum = getSumSnakewiseIterateRegion(
-            radius,
-            entry,
-            increment,
-            prevSum,
-            i,
-            j
-          );
+          sum = getSumSnakewiseIterateRegionRight(radius, entry, prevSum, i, j);
         }
         highDensityRegions.push({ sum, idx: i * columns + j });
+        prevSum = sum;
       }
+      j -= INCREMENT;
     } else {
-      for (let j = columns - radius; j >= radius; j -= increment) {
+      for (; j >= radius; j -= INCREMENT) {
         if (incrementedRow) {
           incrementedRow = false;
-          sum = getSumSnakewiseTurnRegion(
-            regionSize,
-            entry,
-            increment,
-            prevSum,
-            i
-          );
+          sum = getSumSnakewiseTurnRegion(regionSize, entry, prevSum, i, j);
         } else {
-          sum = getSumSnakewiseIterateRegion(
-            radius,
-            entry,
-            increment,
-            prevSum,
-            i,
-            j
-          );
+          sum = getSumSnakewiseIterateRegionLeft(radius, entry, prevSum, i, j);
         }
         highDensityRegions.push({ sum, idx: i * columns + j });
+        prevSum = sum;
       }
+      j += INCREMENT;
     }
 
     incrementedRow = true;
+    rowIter++;
   }
 
   // sort and filter by sum then index
@@ -204,9 +183,7 @@ const getHighDensityRegions = (entry) => {
 
 const getHighDensityRegionsAllBoards = (boards) => {
   const allBoardsHighDensityRegions = boards.map((entry) => {
-    return entry.ready && !entry.finished
-      ? getHighDensityRegions(entry)
-      : entry;
+    return entry.ready ? getHighDensityRegions(entry) : entry;
   });
 
   return allBoardsHighDensityRegions;

@@ -1,6 +1,6 @@
 // picking color palettes with k color
 // https://medium.com/geekculture/implementing-k-means-clustering-from-scratch-in-javascript-13d71fbcb31e
-const { EPS } = require("./data");
+const { EPS } = require("./constants");
 
 function labToRgb(lab) {
   var y = (lab[0] + 16) / 116,
