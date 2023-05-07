@@ -154,6 +154,8 @@ async function removeBackgroundFromUserImage(req, res, next) {
 
   const filePath = id + "/" + file;
 
+  console.log(process.env.NODE_ENV);
+
   // remove background
   const pythonShellOptions = {
     pythonOptions: ["-u"],
@@ -167,8 +169,6 @@ async function removeBackgroundFromUserImage(req, res, next) {
       pythonPath: "/Users/jackli/.pyenv/versions/3.10.11/bin/python/",
     }),
   };
-
-  console.log(process.env.NODE_ENV, pythonShellOptions);
 
   try {
     await PythonShell.run(

@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ws = require("ws");
 const cors = require("cors");
+const compression = require("compression");
 const queries = require("./src/queries");
 const {
   createValidBoard,
@@ -37,6 +38,8 @@ function setupWebsocket(server) {
 // middleware
 app.options("*", cors());
 app.use(cors({ allowedHeaders: "Content-Type" }));
+
+app.use(compression());
 
 app.use(bodyParser.json());
 app.use(
