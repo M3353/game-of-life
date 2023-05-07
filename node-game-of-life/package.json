@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Backend for game of life",
   "main": "index.js",
-  "engine": {
+  "engines": {
     "node": "20.1.0",
     "npm": "9.6.4"
   },
