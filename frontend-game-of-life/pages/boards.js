@@ -16,7 +16,7 @@ export default function Boards() {
 
   const socketUrl =
     process.env.NODE_ENV == "production"
-      ? `ws://${process.env.NEXT_PUBLIC_URL}`
+      ? `wss://${process.env.NEXT_PUBLIC_URL}`
       : `ws://${process.env.NEXT_PUBLIC_URL}`;
 
   const ws = useWebSocket({
