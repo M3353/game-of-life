@@ -163,7 +163,7 @@ async function removeBackgroundFromUserImage(req, res, next) {
       process.env.ACCESS_KEY,
       process.env.SECRET_ACCESS_KEY,
     ],
-    ...(process.env.NODE_ENV === "development" && {
+    ...(process.env.NODE_ENV !== "production" && {
       pythonPath: "/Users/jackli/.pyenv/versions/3.10.11/bin/python/",
     }),
   };
