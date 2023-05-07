@@ -1,1 +1,0 @@
-web: cd node-game-of-life && node server.js

@@ -1,1 +1,0 @@
-web: cd frontend-game-of-life && node server.js
