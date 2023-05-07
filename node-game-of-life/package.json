@@ -10,7 +10,8 @@
   "scripts": {
     "dev": "nodemon ./server.js localhost 5431",
     "migrate:postgres": "dotenv -e .env.local -- npx prisma migrate dev",
-    "start": "serve -s build"
+    "start": "nodemon server.js",
+    "build": "npm run build"
   },
   "repository": "https://github.com/M3353/game-of-life.git",
   "author": "Jack Li",
