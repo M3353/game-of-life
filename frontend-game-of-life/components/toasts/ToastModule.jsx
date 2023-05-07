@@ -25,4 +25,4 @@ const Toast = (props) => {
   );
 };
 
-export default Toast;
+module.exports = { Toast };
