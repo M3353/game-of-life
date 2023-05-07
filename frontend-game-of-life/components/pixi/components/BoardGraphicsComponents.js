@@ -153,6 +153,7 @@ const GameOfLifeImages = (props) => {
           .map((val, i) => {
             const { idx } = val;
             const images = imageUrls.get(id);
+            console.log(imageUrls);
             const image = images[i % images.length];
             const x = idx % columns;
             const y = parseInt(idx / columns);
