@@ -15,6 +15,8 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
       },
 
+      secret: process.env.NEXT_PUBLIC_SECRET,
+
       async authorize(credentials, req) {
         if (isCorrectCredentials(credentials)) {
           const user = { id: 1, name: "Admin" };
