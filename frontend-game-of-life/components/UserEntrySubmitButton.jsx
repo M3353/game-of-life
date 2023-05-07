@@ -65,7 +65,6 @@ const UserEntrySubmitButton = (props) => {
       await axios
         .put(endpoint, data, {
           headers: {
-            Accept: "application/json",
             "Content-Type": "application/json;charset=UTF-8",
           },
         })

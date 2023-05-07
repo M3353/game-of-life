@@ -15,7 +15,7 @@ import { BorderBox, PrimaryButton } from "../../components/StyledComponents";
 
 export default function Delete() {
   const [data, setData] = useState();
-  const [id, setId] = useState();
+  const [id, setId] = useState("");
   const url =
     process.env.NODE_ENV == "production"
       ? `https://${process.env.NEXT_PUBLIC_URL}`
