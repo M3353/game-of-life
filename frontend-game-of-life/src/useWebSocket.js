@@ -38,7 +38,7 @@ function useWebSocket({
     };
 
     return () => {
-      ws.close();
+      if (ws.readyState === 1) ws.close();
     };
   }, [retry]);
 
