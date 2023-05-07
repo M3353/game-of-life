@@ -10,7 +10,6 @@ import { BorderBox } from "../components/StyledComponents";
 
 export default function UserSubmitPage() {
   const [data, setData] = useState();
-  const { isMobile } = useGameContext();
 
   useEffect(() => {
     fetchData();
@@ -19,10 +18,10 @@ export default function UserSubmitPage() {
   function fetchData() {
     const url =
       process.env.NODE_ENV == "production"
-        ? `https://${process.env.NEXT_PUBLIC_URL}`
+        ? `http://${process.env.NEXT_PUBLIC_URL}`
         : `http://${process.env.NEXT_PUBLIC_URL}`;
 
-    const endpoint = `${url}/boards/`;
+    const endpoint = `${url}/boards`;
     axios
       .get(endpoint)
       .then((res) => {

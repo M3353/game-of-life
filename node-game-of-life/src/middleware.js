@@ -168,7 +168,7 @@ async function removeBackgroundFromUserImage(req, res, next) {
     }),
   };
 
-  console.log(pythonShellOptions);
+  console.log(process.env.NODE_ENV, pythonShellOptions);
 
   try {
     await PythonShell.run(
