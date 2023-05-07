@@ -37,3 +37,4 @@ if __name__ == "__main__":
         image_to_s3(output_img)
     finally:
         input_img.close()
+        output_img.close()

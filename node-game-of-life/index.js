@@ -59,7 +59,7 @@ app.get("/boards", queries.getBoards);
 app.get("/boards/:id", queries.getBoardById);
 app.put(
   "/boards/:id",
-  // removeBackgroundFromUserImage,
+  removeBackgroundFromUserImage,
   updateBoardWithUserImage,
   updateBoardWithUserEntry,
   queries.updateBoard
