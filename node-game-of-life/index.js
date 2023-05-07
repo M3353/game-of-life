@@ -35,7 +35,7 @@ function setupWebsocket(server) {
 }
 
 // middleware
-app.use(cors());
+app.use(cors({ allowedHeaders: ["Content-Type"] }));
 
 app.use(bodyParser.json());
 app.use(
