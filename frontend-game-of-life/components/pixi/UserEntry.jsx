@@ -69,7 +69,7 @@ function UserEntryCell(props) {
 
       if ([...lastTouches.values()].includes(idx)) handleToggleCell();
     },
-    [xDim, yDim, changedBoard, lastTouches, loading, numFilled]
+    [xDim, yDim, changedBoard, lastTouches, loading]
   );
 
   return <Graphics draw={draw} />;

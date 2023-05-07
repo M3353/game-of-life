@@ -33,7 +33,7 @@ function UserEntryOccupiedCell(props) {
       );
       g.endFill();
 
-      g.eventMode = loading ? "none" : "static";
+      g.eventMode = "static";
       g.addEventListener("click", (e) => {
         if (val == 0) {
           setLocation([x, y]);
@@ -46,7 +46,7 @@ function UserEntryOccupiedCell(props) {
         }
       });
     },
-    [xDim, yDim, location, id, loading]
+    [xDim, yDim, location, id]
   );
   return <Graphics draw={draw} />;
 }
