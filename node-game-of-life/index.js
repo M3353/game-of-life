@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const ws = require("ws");
 const cors = require("cors");
 const compression = require("compression");
+
 const queries = require("./src/queries");
 const {
   createValidBoard,
@@ -58,7 +59,7 @@ app.get("/boards", queries.getBoards);
 app.get("/boards/:id", queries.getBoardById);
 app.put(
   "/boards/:id",
-  removeBackgroundFromUserImage,
+  // removeBackgroundFromUserImage,
   updateBoardWithUserImage,
   updateBoardWithUserEntry,
   queries.updateBoard

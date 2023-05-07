@@ -153,9 +153,6 @@ async function removeBackgroundFromUserImage(req, res, next) {
   const { file, id } = req.body;
 
   const filePath = id + "/" + file;
-
-  console.log(process.env.NODE_ENV);
-
   // remove background
   const pythonShellOptions = {
     pythonOptions: ["-u"],
