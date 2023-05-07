@@ -5,6 +5,7 @@
 node-game-of-life/tests
 
 node-game-of-life/ids.json
+node-game-of-life/.env
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
