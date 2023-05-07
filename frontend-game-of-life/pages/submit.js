@@ -40,6 +40,9 @@ export default function UserSubmitPage() {
         <Header />
       </div>
       <BorderBox>
+        <Typography variant="h3" sx={{ m: 2 }}>
+          Submit an Entry
+        </Typography>
         {data !== undefined && data.length > 0 ? (
           <SubmitContainer data={data} fetchData={fetchData} />
         ) : (

@@ -54,6 +54,10 @@ const GameOfLifeTheme = createTheme({
       fontFamily: josefinSans.style.fontFamily,
       fontWeight: 300,
     },
+    body2: {
+      fontFamily: josefinSans.style.fontFamily,
+      fontWeight: 300,
+    },
   },
 });
 

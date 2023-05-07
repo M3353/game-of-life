@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 import useWebSocket from "../src/useWebSocket";
 import BoardsContainer from "../containers/BoardsContainer";
@@ -58,6 +58,11 @@ export default function Boards() {
         </div>
       )}
       <BorderBox>
+        {!galleryView && (
+          <Typography variant="h3" sx={{ m: 2 }}>
+            Gallery
+          </Typography>
+        )}
         {data != null && mounted && (
           <BoardsContainer data={data} fetchData={fetchData} ws={ws} />
         )}
