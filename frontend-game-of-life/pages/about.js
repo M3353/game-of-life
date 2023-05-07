@@ -17,8 +17,8 @@ export default function About() {
             width: "40%",
           }}
         >
-          {about.map((text) => (
-            <Typography variant="body1" sx={{ m: 2 }}>
+          {about.map((text, i) => (
+            <Typography key={i} variant="body1" sx={{ m: 2 }}>
               {text}
             </Typography>
           ))}
