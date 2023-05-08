@@ -181,6 +181,9 @@ async function updateBoardWithUserImage(req, res, next) {
     return next(err);
   }
 
+  // get image from s3 and convert to byte stream
+  const imageFromS3 = await getImage(filePath);
+
   // try to get sharp metadata - if error, return
   try {
     await sharp(imageFromS3).metadata();
@@ -191,9 +194,6 @@ async function updateBoardWithUserImage(req, res, next) {
     });
     return next(err);
   }
-
-  // get image from s3 and convert to byte stream
-  const imageFromS3 = await getImage(filePath);
 
   // resize and blur image using sharp
   const { data, info } = await sharp(imageFromS3)
@@ -230,7 +230,7 @@ async function updateBoardWithUserImage(req, res, next) {
     .toFormat("png")
     .toBuffer();
 
-  await putImage(imageToS3, filePath);
+  putImage(imageToS3, filePath);
 
   next();
 }
