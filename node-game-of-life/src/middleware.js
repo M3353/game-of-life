@@ -181,56 +181,56 @@ async function updateBoardWithUserImage(req, res, next) {
     return next(err);
   }
 
-  // get image from s3 and convert to byte stream
-  const imageFromS3 = await getImage(filePath);
+  // // get image from s3 and convert to byte stream
+  // const imageFromS3 = await getImage(filePath);
 
-  // try to get sharp metadata - if error, return
-  try {
-    await sharp(imageFromS3).metadata();
-  } catch (err) {
-    handleSubmitImageError(filePath);
-    res.status(401).send({
-      message: `[ERROR] error when attempting to process image ${filePath}`,
-    });
-    return next(err);
-  }
+  // // try to get sharp metadata - if error, return
+  // try {
+  //   await sharp(imageFromS3).metadata();
+  // } catch (err) {
+  //   handleSubmitImageError(filePath);
+  //   res.status(401).send({
+  //     message: `[ERROR] error when attempting to process image ${filePath}`,
+  //   });
+  //   return next(err);
+  // }
 
-  // resize and blur image using sharp
-  const { data, info } = await sharp(imageFromS3)
-    .resize({ fit: sharp.fit.contain, width: 400 })
-    .modulate({
-      saturation: 2,
-    })
-    .gamma()
-    .trim()
-    .median()
-    .toColorspace("lab")
-    .raw({ depth: "float" })
-    .toBuffer({ resolveWithObject: true });
+  // // resize and blur image using sharp
+  // const { data, info } = await sharp(imageFromS3)
+  //   .resize({ fit: sharp.fit.contain, width: 400 })
+  //   .modulate({
+  //     saturation: 2,
+  //   })
+  //   .gamma()
+  //   .trim()
+  //   .median()
+  //   .toColorspace("lab")
+  //   .raw({ depth: "float" })
+  //   .toBuffer({ resolveWithObject: true });
 
-  // manually process image
-  const { pixelArray, colors } = await applyFilter(data, info);
+  // // manually process image
+  // const { pixelArray, colors } = await applyFilter(data, info);
 
-  // sort colors by weight and put it in req body
-  req.body.palette = { data: [...palette, ...colors] };
+  // // sort colors by weight and put it in req body
+  // req.body.palette = { data: [...palette, ...colors] };
 
-  const newPalette = uniqueSort(req.body.palette.data);
-  req.body.palette.data = newPalette;
-  if (req.body.palette.data.length > boardOccupied.length) {
-    req.body.palette.data.splice(boardOccupied.length);
-  }
+  // const newPalette = uniqueSort(req.body.palette.data);
+  // req.body.palette.data = newPalette;
+  // if (req.body.palette.data.length > boardOccupied.length) {
+  //   req.body.palette.data.splice(boardOccupied.length);
+  // }
 
-  // convert raw data to buffer
-  const { width, height, channels } = info;
+  // // convert raw data to buffer
+  // const { width, height, channels } = info;
 
-  // put image to s3
-  const imageToS3 = await sharp(new Uint8ClampedArray(pixelArray), {
-    raw: { width, height, channels },
-  })
-    .toFormat("png")
-    .toBuffer();
+  // // put image to s3
+  // const imageToS3 = await sharp(new Uint8ClampedArray(pixelArray), {
+  //   raw: { width, height, channels },
+  // })
+  //   .toFormat("png")
+  //   .toBuffer();
 
-  putImage(imageToS3, filePath);
+  // putImage(imageToS3, filePath);
 
   next();
 }

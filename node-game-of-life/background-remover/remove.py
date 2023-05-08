@@ -29,12 +29,11 @@ def image_to_s3(output):
 
 if __name__ == "__main__":
     input_img = image_from_s3()
-    input_img.close()
-    # try:
-    #     output_img = remove(input_img)
-    # except:
-    #     print("error")
-    # else:
-    #     image_to_s3(output_img)
-    # finally:
-    #     input_img.close()
+    try:
+        output_img = remove(input_img)
+    except:
+        print("error")
+    else:
+        image_to_s3(output_img)
+    finally:
+        input_img.close()
