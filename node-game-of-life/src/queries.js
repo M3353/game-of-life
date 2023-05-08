@@ -1,4 +1,5 @@
 const prisma = require("./prisma");
+const { removeBackground } = require("./background_tasks");
 require("dotenv").config();
 
 async function createBoard(req, res) {
@@ -90,7 +91,7 @@ async function getBoardById(req, res) {
 
 async function updateBoard(req, res) {
   const id = parseInt(req.params.id);
-  const { board, occupied, ready, palette } = req.body;
+  const { board, occupied, ready, palette, file } = req.body;
   try {
     const updatedBoard = await prisma.board.update({
       where: { id },
@@ -102,6 +103,9 @@ async function updateBoard(req, res) {
       },
     });
     res.status(200).send(`Board ${id} incremented successfully.`);
+    res.on("finish", () => {
+      removeBackground(id, file);
+    });
   } catch (e) {
     throw e;
   }

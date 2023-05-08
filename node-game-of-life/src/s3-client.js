@@ -2,6 +2,7 @@ const {
   S3Client,
   GetObjectCommand,
   PutObjectCommand,
+  DeleteObjectCommand,
 } = require("@aws-sdk/client-s3");
 
 const s3 = new S3Client({
@@ -59,4 +60,16 @@ async function putImage(img, file) {
   }
 }
 
-module.exports = { s3, getImage, putImage, getS3Stream };
+async function deleteImage(key) {
+  const deleteParams = {
+    Bucket: process.env.S3_BUCKET,
+    Key: key,
+  };
+
+  const deleteCommand = new DeleteObjectCommand(deleteParams);
+  await s3.send(deleteCommand);
+
+  console.log(`deleted image with key ${key}`);
+}
+
+module.exports = { s3, getImage, putImage, getS3Stream, deleteImage };

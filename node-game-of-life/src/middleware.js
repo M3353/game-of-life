@@ -1,12 +1,11 @@
 const sharp = require("sharp");
-const { PythonShell } = require("python-shell");
 const {
   ListObjectsV2Command,
   DeleteObjectCommand,
 } = require("@aws-sdk/client-s3");
 
 const { kMean } = require("./filters");
-const { getImage, putImage } = require("./s3-client");
+const { getImage, putImage, deleteImage } = require("./s3-client");
 const { ENTRY_SIZE, PALETTE_SIZE, EPS } = require("./constants");
 const { labToRgb } = require("./filters-utils");
 const { s3 } = require("./s3-client");
@@ -137,100 +136,61 @@ function uniqueSort(arr) {
   return ret;
 }
 
-async function handleSubmitImageError(key) {
-  const deleteParams = {
-    Bucket: process.env.S3_BUCKET,
-    Key: key,
-  };
-
-  const deleteCommand = new DeleteObjectCommand(deleteParams);
-  await s3.send(deleteCommand);
-
-  console.log(`deleted image with key ${key}`);
-}
-
 async function updateBoardWithUserImage(req, res, next) {
   const { file, palette, boardOccupied, id } = req.body;
 
   const filePath = id + "/" + file;
 
-  // remove background
-  const pythonShellOptions = {
-    pythonOptions: ["-u"],
-    args: [
-      filePath,
-      process.env.S3_BUCKET,
-      process.env.ACCESS_KEY,
-      process.env.SECRET_ACCESS_KEY,
-    ],
-    ...(process.env.NODE_ENV !== "production" && {
-      pythonPath: "/Users/jackli/.pyenv/versions/3.10.11/bin/python/",
-    }),
-  };
+  // get image from s3 and convert to byte stream
+  const imageFromS3 = await getImage(filePath);
 
+  // try to get sharp metadata - if error, return
   try {
-    await PythonShell.run(
-      "background-remover/remove.py",
-      pythonShellOptions
-    ).then((results) => console.log(results));
+    await sharp(imageFromS3).metadata();
   } catch (err) {
-    handleSubmitImageError(filePath);
+    deleteImage(filePath);
     res.status(401).send({
-      message: `[ERROR] error when attempting to remove background ${filePath}`,
+      message: `[ERROR] error when attempting to process image ${filePath}`,
     });
     return next(err);
   }
 
-  // // get image from s3 and convert to byte stream
-  // const imageFromS3 = await getImage(filePath);
+  // resize and blur image using sharp
+  const { data, info } = await sharp(imageFromS3)
+    .resize({ fit: sharp.fit.contain, width: 400 })
+    .modulate({
+      saturation: 2,
+    })
+    .gamma()
+    .trim()
+    .median()
+    .toColorspace("lab")
+    .raw({ depth: "float" })
+    .toBuffer({ resolveWithObject: true });
 
-  // // try to get sharp metadata - if error, return
-  // try {
-  //   await sharp(imageFromS3).metadata();
-  // } catch (err) {
-  //   handleSubmitImageError(filePath);
-  //   res.status(401).send({
-  //     message: `[ERROR] error when attempting to process image ${filePath}`,
-  //   });
-  //   return next(err);
-  // }
+  // manually process image
+  const { pixelArray, colors } = await applyFilter(data, info);
 
-  // // resize and blur image using sharp
-  // const { data, info } = await sharp(imageFromS3)
-  //   .resize({ fit: sharp.fit.contain, width: 400 })
-  //   .modulate({
-  //     saturation: 2,
-  //   })
-  //   .gamma()
-  //   .trim()
-  //   .median()
-  //   .toColorspace("lab")
-  //   .raw({ depth: "float" })
-  //   .toBuffer({ resolveWithObject: true });
+  // sort colors by weight and put it in req body
+  req.body.palette = { data: [...palette, ...colors] };
 
-  // // manually process image
-  // const { pixelArray, colors } = await applyFilter(data, info);
+  const newPalette = uniqueSort(req.body.palette.data);
+  req.body.palette.data = newPalette;
+  if (req.body.palette.data.length > boardOccupied.length) {
+    req.body.palette.data.splice(boardOccupied.length);
+  }
 
-  // // sort colors by weight and put it in req body
-  // req.body.palette = { data: [...palette, ...colors] };
+  // convert raw data to buffer
+  const { width, height, channels } = info;
 
-  // const newPalette = uniqueSort(req.body.palette.data);
-  // req.body.palette.data = newPalette;
-  // if (req.body.palette.data.length > boardOccupied.length) {
-  //   req.body.palette.data.splice(boardOccupied.length);
-  // }
+  // put image to s3
+  const imageToS3 = await sharp(new Uint8ClampedArray(pixelArray), {
+    raw: { width, height, channels },
+  })
+    .toFormat("png")
+    .toBuffer();
 
-  // // convert raw data to buffer
-  // const { width, height, channels } = info;
-
-  // // put image to s3
-  // const imageToS3 = await sharp(new Uint8ClampedArray(pixelArray), {
-  //   raw: { width, height, channels },
-  // })
-  //   .toFormat("png")
-  //   .toBuffer();
-
-  // putImage(imageToS3, filePath);
+  putImage(imageToS3, filePath);
 
   next();
 }
