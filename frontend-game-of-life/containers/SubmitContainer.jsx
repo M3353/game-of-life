@@ -16,9 +16,9 @@ import { homeLinks } from "../src/links";
 import { NavLinks } from "../components/links";
 import { useGameContext } from "../src/GameContext";
 import { instructions } from "../src/text";
+import { Toast } from "../components/toasts/ToastModule";
 
 import styles from "../styles/submit.module.css";
-import Toast from "../components/toasts/ToastModule";
 
 const SIZE = 5;
 

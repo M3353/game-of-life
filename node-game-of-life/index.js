@@ -8,7 +8,8 @@ const queries = require("./src/queries");
 const {
   createValidBoard,
   updateBoardWithUserEntry,
-  updateBoardWithUserImage,
+  processUserImage,
+  applyCustomFilterUserImage,
   emptyS3Directory,
   removeBackgroundFromUserImage,
 } = require("./src/middleware");
@@ -59,15 +60,16 @@ app.get("/boards", queries.getBoards);
 app.get("/boards/:id", queries.getBoardById);
 app.put(
   "/boards/:id",
+  processUserImage,
   removeBackgroundFromUserImage,
-  updateBoardWithUserImage,
+  applyCustomFilterUserImage,
   updateBoardWithUserEntry,
   queries.updateBoard
 );
 
 app.post("/admin", queries.incrementBoard);
 app.post("/admin/:id", createValidBoard, queries.createBoard);
-app.delete("/admin/:id", emptyS3Directory, queries.deleteBoard);
+app.delete("/admin/:id", queries.deleteBoard);
 
 const server = app.listen(port, () => {
   console.log(`App running on port ${port}.`);
