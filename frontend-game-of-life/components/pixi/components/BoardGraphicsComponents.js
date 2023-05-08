@@ -137,24 +137,23 @@ const GameOfLifeImages = (props) => {
   const { data, imageUrls, xDim, yDim, id } = props;
   const { columns, highDensityRegions, occupied } = data;
   const [mounted, setMounted] = useState(false);
+  const [imageSet, setImageSet] = useState([]);
 
   useEffect(() => {
     setMounted(true);
+    setImageSet(imageUrls.get(id));
   }, []);
 
   return (
     <>
       {mounted &&
-        imageUrls !== undefined &&
-        imageUrls.size > 0 &&
+        imageSet.length > 0 &&
         highDensityRegions.data !== undefined &&
         highDensityRegions.data
           .slice(highDensityRegions.data.length - occupied.data.length)
           .map((val, i) => {
             const { idx } = val;
-            const images = imageUrls.get(id);
-            console.log(imageUrls);
-            const image = images[i % images.length];
+            const image = imageSet[i % imageSet.length];
             const x = idx % columns;
             const y = parseInt(idx / columns);
 

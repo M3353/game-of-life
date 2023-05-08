@@ -30,7 +30,7 @@ const BoardGraphics = (props) => {
 
   return (
     <>
-      {mounted && (
+      {mounted && imageUrls.size > 0 && (
         <Stage width={width} height={height}>
           <GameOfLifeGrid data={data} xDim={xDim} yDim={yDim} />
           <GameOfLifeImages

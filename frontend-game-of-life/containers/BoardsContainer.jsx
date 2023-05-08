@@ -17,35 +17,32 @@ const BoardsContainer = (props) => {
       const { message } = ws.data;
       if (typeof message === "object") {
         fetchData();
+
+        const retrieveParams = {
+          Bucket: process.env.NEXT_PUBLIC_S3_BUCKET,
+        };
+        s3.listObjectsV2(retrieveParams, function (err, data) {
+          if (err) console.log(err, err.stack);
+          else {
+            const { Contents } = data;
+            const imageMap = new Map();
+            Contents.forEach((file) => {
+              const folder = file.Key.substring(0, file.Key.indexOf("/"));
+              const id = parseInt(folder);
+              if (!imageMap.has(id)) {
+                imageMap.set(id, []);
+              }
+              imageMap.get(id).push({
+                url: getS3FileURL(file.Key),
+                size: file.Size,
+              });
+            });
+            setImageUrls(imageMap);
+          }
+        });
       }
     }
   }, [ws.data]);
-
-  // get bucket images
-  useEffect(() => {
-    const retrieveParams = {
-      Bucket: process.env.NEXT_PUBLIC_S3_BUCKET,
-    };
-    s3.listObjectsV2(retrieveParams, function (err, data) {
-      if (err) console.log(err, err.stack);
-      else {
-        const { Contents } = data;
-        const imageMap = new Map();
-        Contents.forEach((file) => {
-          const folder = file.Key.substring(0, file.Key.indexOf("/"));
-          const id = parseInt(folder);
-          if (!imageMap.has(id)) {
-            imageMap.set(id, []);
-          }
-          imageMap.get(id).push({
-            url: getS3FileURL(file.Key),
-            size: file.Size,
-          });
-        });
-        setImageUrls(imageMap);
-      }
-    });
-  }, []);
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column" }}>
