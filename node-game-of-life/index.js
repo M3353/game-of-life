@@ -65,7 +65,7 @@ app.put(
 
 app.post("/admin", queries.incrementBoard);
 app.post("/admin/:id", createValidBoard, queries.createBoard);
-app.delete("/admin/:id", emptyS3Directory, queries.deleteBoard);
+app.delete("/admin/:id", queries.deleteBoard);
 
 const server = app.listen(port, () => {
   console.log(`App running on port ${port}.`);

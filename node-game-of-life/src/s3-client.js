@@ -3,6 +3,7 @@ const {
   GetObjectCommand,
   PutObjectCommand,
   DeleteObjectCommand,
+  ListObjectsV2Command,
 } = require("@aws-sdk/client-s3");
 
 const s3 = new S3Client({
@@ -65,11 +66,44 @@ async function deleteImage(key) {
     Bucket: process.env.S3_BUCKET,
     Key: key,
   };
-
-  const deleteCommand = new DeleteObjectCommand(deleteParams);
-  await s3.send(deleteCommand);
+  try {
+    await s3.send(new DeleteObjectCommand(deleteParams));
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
 
   console.log(`deleted image with key ${key}`);
 }
 
-module.exports = { s3, getImage, putImage, getS3Stream, deleteImage };
+async function emptyS3Directory(id) {
+  const listParams = {
+    Bucket: process.env.S3_BUCKET,
+    Prefix: `${id}/`,
+  };
+
+  const listCommand = new ListObjectsV2Command(listParams);
+  const listedObjects = await s3.send(listCommand);
+
+  if (listedObjects.Contents.length === 0) return;
+
+  for (let i = 0; i < listedObjects.Contents.length; i++) {
+    const { Key } = listedObjects.Contents[i];
+    try {
+      await deleteImage(Key);
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  }
+
+  if (listedObjects.IsTruncated) await emptyS3Directory(req, res, next);
+}
+
+module.exports = {
+  getImage,
+  putImage,
+  getS3Stream,
+  deleteImage,
+  emptyS3Directory,
+};

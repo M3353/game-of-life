@@ -1,5 +1,6 @@
 const prisma = require("./prisma");
 const { removeBackground } = require("./background_tasks");
+const { emptyS3Directory } = require("./s3-client");
 require("dotenv").config();
 
 async function createBoard(req, res) {
@@ -43,6 +44,9 @@ async function deleteBoard(req, res) {
       },
     });
     res.status(200).send(`Board deleted with ID: ${id}`);
+    res.on("finish", () => {
+      emptyS3Directory(id);
+    });
   } catch (e) {
     throw e;
   }

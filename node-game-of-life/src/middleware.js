@@ -1,14 +1,9 @@
 const sharp = require("sharp");
-const {
-  ListObjectsV2Command,
-  DeleteObjectCommand,
-} = require("@aws-sdk/client-s3");
 
 const { kMean } = require("./filters");
 const { getImage, putImage, deleteImage } = require("./s3-client");
 const { ENTRY_SIZE, PALETTE_SIZE, EPS } = require("./constants");
 const { labToRgb } = require("./filters-utils");
-const { s3 } = require("./s3-client");
 
 function foundOne(rowStart, rowEnd, colStart, colEnd, board) {
   // better algorithm is to sort and check the first val, O(nlogn)
@@ -195,37 +190,8 @@ async function updateBoardWithUserImage(req, res, next) {
   next();
 }
 
-async function emptyS3Directory(req, res, next) {
-  const id = parseInt(req.params.id);
-  const listParams = {
-    Bucket: process.env.S3_BUCKET,
-    Prefix: `${id}/`,
-  };
-
-  const listCommand = new ListObjectsV2Command(listParams);
-  const listedObjects = await s3.send(listCommand);
-
-  if (listedObjects.Contents.length === 0) return;
-
-  for (let i = 0; i < listedObjects.Contents.length; i++) {
-    const { Key } = listedObjects.Contents[i];
-    const deleteParams = {
-      Bucket: process.env.S3_BUCKET,
-      Key,
-    };
-
-    const deleteCommand = new DeleteObjectCommand(deleteParams);
-    await s3.send(deleteCommand);
-  }
-
-  if (listedObjects.IsTruncated) await emptyS3Directory(req, res, next);
-
-  next();
-}
-
 module.exports = {
   createValidBoard,
   updateBoardWithUserEntry,
   updateBoardWithUserImage,
-  emptyS3Directory,
 };
