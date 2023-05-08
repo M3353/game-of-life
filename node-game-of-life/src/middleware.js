@@ -149,56 +149,11 @@ async function handleSubmitImageError(key) {
   console.log(`deleted image with key ${key}`);
 }
 
-async function processUserImage(req, res, next) {
-  const { file, id } = req.body;
+async function updateBoardWithUserImage(req, res, next) {
+  const { file, palette, boardOccupied, id } = req.body;
 
   const filePath = id + "/" + file;
 
-  // get image from s3 and convert to byte stream
-  const imageFromS3 = await getImage(filePath);
-
-  // try to get sharp metadata - if error, return
-  try {
-    await sharp(imageFromS3).metadata();
-  } catch (err) {
-    handleSubmitImageError(filePath);
-    res.status(401).send({
-      message: `[ERROR] error when attempting to process image ${filePath}`,
-    });
-    return next(err);
-  }
-
-  // resize and blur image using sharp
-  const { data, info } = await sharp(imageFromS3)
-    .resize({ fit: sharp.fit.contain, width: 400 })
-    .modulate({
-      saturation: 2,
-    })
-    .gamma()
-    .trim()
-    .median()
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-
-  // convert raw data to buffer
-  const { width, height, channels } = info;
-
-  // put image to s3
-  const imageToS3 = await sharp(new Uint8ClampedArray(data.buffer), {
-    raw: { width, height, channels },
-  })
-    .toFormat("png")
-    .toBuffer();
-
-  await putImage(imageToS3, filePath);
-
-  next();
-}
-
-async function removeBackgroundFromUserImage(req, res, next) {
-  const { file, id } = req.body;
-
-  const filePath = id + "/" + file;
   // remove background
   const pythonShellOptions = {
     pythonOptions: ["-u"],
@@ -226,17 +181,6 @@ async function removeBackgroundFromUserImage(req, res, next) {
     return next(err);
   }
 
-  next();
-}
-
-async function applyCustomFilterUserImage(req, res, next) {
-  const { file, palette, boardOccupied, id } = req.body;
-
-  const filePath = id + "/" + file;
-
-  // get image from s3 and convert to byte stream
-  const imageFromS3 = await getImage(filePath);
-
   // try to get sharp metadata - if error, return
   try {
     await sharp(imageFromS3).metadata();
@@ -248,8 +192,18 @@ async function applyCustomFilterUserImage(req, res, next) {
     return next(err);
   }
 
+  // get image from s3 and convert to byte stream
+  const imageFromS3 = await getImage(filePath);
+
   // resize and blur image using sharp
   const { data, info } = await sharp(imageFromS3)
+    .resize({ fit: sharp.fit.contain, width: 400 })
+    .modulate({
+      saturation: 2,
+    })
+    .gamma()
+    .trim()
+    .median()
     .toColorspace("lab")
     .raw({ depth: "float" })
     .toBuffer({ resolveWithObject: true });
@@ -311,9 +265,7 @@ async function emptyS3Directory(req, res, next) {
 
 module.exports = {
   createValidBoard,
-  removeBackgroundFromUserImage,
   updateBoardWithUserEntry,
-  processUserImage,
-  applyCustomFilterUserImage,
+  updateBoardWithUserImage,
   emptyS3Directory,
 };
