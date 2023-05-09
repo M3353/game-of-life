@@ -119,15 +119,18 @@ async function uploadUserImage(id, file, palette) {
   putImage(imageToS3, filePath);
 
   // sort colors by weight and put it in req body
-  const newPaletteData = [...palette, ...colors];
-  uniqueSort(newPaletteData);
+  const newPaletteData = uniqueSort([...palette, ...colors]);
 
-  prisma.board.update({
-    where: { id },
-    data: {
-      palette: { data: newPaletteData },
-    },
-  });
+  try {
+    await prisma.board.update({
+      where: { id },
+      data: {
+        palette: { data: newPaletteData },
+      },
+    });
+  } catch (err) {
+    throw err;
+  }
 }
 
 module.exports = {
