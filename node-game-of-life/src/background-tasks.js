@@ -92,7 +92,7 @@ async function uploadUserImage(id, file, palette) {
 
   // resize and blur image using sharp
   const { data, info } = await sharp(imageFromS3)
-    .resize({ fit: sharp.fit.contain, width: 400 })
+    .resize({ fit: sharp.fit.contain, width: 200 })
     .modulate({
       saturation: 2,
     })

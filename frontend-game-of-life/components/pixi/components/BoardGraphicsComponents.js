@@ -161,7 +161,7 @@ const GameOfLifeImages = (props) => {
               <Sprite
                 key={idx}
                 image={image.url}
-                scale={{ x: Math.log(xDim) / 2, y: Math.log(yDim) / 2 }}
+                scale={{ x: xDim / 40, y: yDim / 40 }}
                 anchor={{ x: 0.5, y: 0.5 }}
                 x={x * xDim}
                 y={y * yDim}
