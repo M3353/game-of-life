@@ -29,7 +29,7 @@ const UserEntrySubmitButton = (props) => {
     return (
       loading ||
       location.length === 0 ||
-      numFilled == 0 ||
+      numFilled === 0 ||
       file.img === undefined
     );
   }, [file.img, numFilled, loading, location]);

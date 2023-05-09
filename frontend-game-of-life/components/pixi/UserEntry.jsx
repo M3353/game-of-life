@@ -53,8 +53,12 @@ function UserEntryCell(props) {
 
       const handleToggleCell = () => {
         entry[idx] ^= 1;
-        setNumFilled(entry[idx] === 1 ? numFilled + 1 : numFilled - 1);
         g.tint = entry[idx] === 1 ? primary : 0xffffff;
+        if (entry[idx] === 1) {
+          setNumFilled((numFilled) => numFilled + 1);
+        } else {
+          setNumFilled((numFilled) => numFilled - 1);
+        }
       };
 
       g.eventMode = loading ? "none" : "static";

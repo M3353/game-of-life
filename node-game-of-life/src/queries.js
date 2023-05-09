@@ -1,7 +1,12 @@
+const { v4: uuidv4 } = require("uuid");
+
 const prisma = require("./prisma");
-const { removeBackground } = require("./background_tasks");
+const { removeBackground, uploadUserImage } = require("./background_tasks");
 const { emptyS3Directory } = require("./s3-client");
+
 require("dotenv").config();
+
+const jobs = {};
 
 async function createBoard(req, res) {
   const {
@@ -93,9 +98,9 @@ async function getBoardById(req, res) {
   }
 }
 
-async function updateBoard(req, res) {
+async function updateBoard(req, res, next) {
   const id = parseInt(req.params.id);
-  const { board, occupied, ready, palette, file } = req.body;
+  const { board, occupied, ready, file, palette } = req.body;
   try {
     const updatedBoard = await prisma.board.update({
       where: { id },
@@ -103,15 +108,39 @@ async function updateBoard(req, res) {
         board: board,
         occupied: occupied,
         ready: ready,
-        palette: palette,
       },
     });
-    res.status(200).send(`Board ${id} incremented successfully.`);
-    res.on("finish", () => {
-      removeBackground(id, file);
+
+    const jobId = uuidv4();
+    Promise.all([
+      removeBackground(id, file),
+      uploadUserImage(id, file, palette),
+    ]).then((values) => {
+      jobs[jobId] = values;
     });
+
+    res.redirect(303, `/image/${jobId}`);
+    next();
+    // res.status(200).send(`Board ${id} incremented successfully.`);
+    // res.on("finish", () => {
+    //   removeBackground(id, file);
+    // });
   } catch (e) {
     throw e;
+  }
+}
+
+async function processImage(req, res) {
+  if (jobs[req.params.jobId] === undefined) {
+    console.log("processing request");
+    res.status(200).send("Still processing your request.");
+  } else {
+    console.log(`${jobs[req.params.uuid]}.`);
+    res.status(200).send(`Here's your result: ${jobs[req.params.uuid]}.`);
+    // instead of immediately deleting the result of the job (and making it impossible for the user
+    // to fetch it a second time if they e.g. accidentally cancel the download), it would be better
+    // to run a periodic cleanup task on `JOBS`
+    delete jobs[req.params.jobId];
   }
 }
 
@@ -122,4 +151,5 @@ module.exports = {
   getBoards,
   getBoardById,
   updateBoard,
+  processImage,
 };

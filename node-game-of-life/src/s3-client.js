@@ -85,7 +85,11 @@ async function emptyS3Directory(id) {
   const listCommand = new ListObjectsV2Command(listParams);
   const listedObjects = await s3.send(listCommand);
 
-  if (listedObjects.Contents.length === 0) return;
+  if (
+    listedObjects.Contents === undefined ||
+    listedObjects.Contents.length === 0
+  )
+    return;
 
   for (let i = 0; i < listedObjects.Contents.length; i++) {
     const { Key } = listedObjects.Contents[i];
