@@ -1,7 +1,7 @@
 const { v4: uuidv4 } = require("uuid");
 
 const prisma = require("./prisma");
-const { removeBackground, uploadUserImage } = require("./background_tasks");
+const { removeBackground, uploadUserImage } = require("./background-tasks");
 const { emptyS3Directory } = require("./s3-client");
 
 require("dotenv").config();
@@ -121,10 +121,6 @@ async function updateBoard(req, res, next) {
 
     res.redirect(303, `/image/${jobId}`);
     next();
-    // res.status(200).send(`Board ${id} incremented successfully.`);
-    // res.on("finish", () => {
-    //   removeBackground(id, file);
-    // });
   } catch (e) {
     throw e;
   }
@@ -137,9 +133,6 @@ async function processImage(req, res) {
   } else {
     console.log(`${jobs[req.params.uuid]}.`);
     res.status(200).send(`Here's your result: ${jobs[req.params.uuid]}.`);
-    // instead of immediately deleting the result of the job (and making it impossible for the user
-    // to fetch it a second time if they e.g. accidentally cancel the download), it would be better
-    // to run a periodic cleanup task on `JOBS`
     delete jobs[req.params.jobId];
   }
 }
