@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "deploy-frontend": "cd frontend-game-of-life && npm run deploy",
+    "deploy-backend": "cd node-game-of-life && npm run deploy",
+    "deploy": "run deploy-frontend && npm run deploy-backend"
+  }
+}
