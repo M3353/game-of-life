@@ -30,6 +30,7 @@ async function removeBackground(id, file) {
       pythonShellOptions
     ).then((results) => console.log(results));
   } catch (err) {
+    console.log("[ERROR] remove background err");
     deleteImage(filePath);
     throw err;
   }
@@ -82,14 +83,6 @@ async function uploadUserImage(id, file, palette) {
   // get image from s3 and convert to byte stream
   const imageFromS3 = await getImage(filePath);
 
-  // try to get sharp metadata - if error, return
-  try {
-    await sharp(imageFromS3).metadata();
-  } catch (err) {
-    deleteImage(filePath);
-    throw err;
-  }
-
   // resize and blur image using sharp
   const { data, info } = await sharp(imageFromS3)
     .resize({ fit: sharp.fit.contain, width: 200 })
@@ -113,10 +106,10 @@ async function uploadUserImage(id, file, palette) {
   const imageToS3 = await sharp(new Uint8ClampedArray(pixelArray), {
     raw: { width, height, channels },
   })
-    .toFormat("png")
+    .png()
     .toBuffer();
 
-  putImage(imageToS3, filePath);
+  await putImage(imageToS3, filePath);
 
   // sort colors by weight and put it in req body
   const newPaletteData = uniqueSort([...palette, ...colors]);

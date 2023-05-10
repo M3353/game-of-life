@@ -40,6 +40,7 @@ const UserEntrySubmitButton = (props) => {
         ? `https://${process.env.NEXT_PUBLIC_URL}`
         : `http://${process.env.NEXT_PUBLIC_URL}`;
     const endpoint = `${url}/boards/${id}`;
+    const pngFilePath = file.key.replace(/.([^.]*)$/, ".png");
     const data = {
       boardOccupied: occupied,
       board,
@@ -48,13 +49,13 @@ const UserEntrySubmitButton = (props) => {
       rows,
       columns,
       palette,
-      file: file.key,
+      file: pngFilePath,
       id,
     };
 
     const uploadParams = {
       Bucket: process.env.NEXT_PUBLIC_S3_BUCKET,
-      Key: id + "/" + file.key,
+      Key: id + "/" + pngFilePath,
       Body: file.img,
     };
 

@@ -15,14 +15,14 @@ export default function UserSubmitPage() {
     fetchData();
   }, []);
 
-  function fetchData() {
+  async function fetchData() {
     const url =
       process.env.NODE_ENV == "production"
         ? `https://${process.env.NEXT_PUBLIC_URL}`
         : `http://${process.env.NEXT_PUBLIC_URL}`;
 
     const endpoint = `${url}/boards`;
-    axios
+    await axios
       .get(endpoint)
       .then((res) => {
         setData(res.data);

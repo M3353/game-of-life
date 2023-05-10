@@ -1,4 +1,7 @@
+const sharp = require("sharp");
 const { ENTRY_SIZE } = require("./constants");
+const { prevOccupiedMap, prevBoardMap } = require("./cache");
+const { getImage, deleteImage } = require("./s3-client");
 
 function foundOne(rowStart, rowEnd, colStart, colEnd, board) {
   // better algorithm is to sort and check the first val, O(nlogn)
@@ -53,7 +56,8 @@ const createValidBoard = (req, res, next) => {
 };
 
 const updateBoardWithUserEntry = (req, res, next) => {
-  const { board, boardOccupied, coords, entry, columns } = req.body;
+  const id = parseInt(req.params.id);
+  const { board, boardOccupied, coords, entry, columns, rows } = req.body;
 
   const x = coords[0];
   const y = coords[1];
@@ -61,22 +65,26 @@ const updateBoardWithUserEntry = (req, res, next) => {
   const row_offset = ENTRY_SIZE * y;
   const col_offset = ENTRY_SIZE * x;
 
-  const updatedBoard = board.map((ele) => ele);
+  if (!prevBoardMap.has(id)) prevBoardMap.set(id, board);
+  if (!prevOccupiedMap.has(id)) prevOccupiedMap.set(id, boardOccupied);
 
-  board.forEach((ele, i) => {
+  const _board = prevBoardMap.get(id);
+  const _occupied = prevOccupiedMap.get(id);
+
+  const updatedBoard = _board.map((ele, i) => {
     const r = i / columns;
     const c = i % columns;
-    updatedBoard[i] =
-      r >= row_offset &&
+    return r >= row_offset &&
       r < row_offset + ENTRY_SIZE &&
       c >= col_offset &&
       c < col_offset + ENTRY_SIZE
-        ? entry[i % (ENTRY_SIZE * ENTRY_SIZE)]
-        : ele;
+      ? entry[i % (ENTRY_SIZE * ENTRY_SIZE)]
+      : ele;
   });
 
-  const updatedBoardOccupied = boardOccupied.map((ele) => ele);
-  updatedBoardOccupied[y * parseInt(columns / ENTRY_SIZE) + x] = 1;
+  const updatedBoardOccupied = _occupied.map((ele, i) =>
+    i === y * Math.floor(columns / ENTRY_SIZE) + x ? 1 : ele
+  );
 
   req.body.board = { data: updatedBoard };
   req.body.occupied = { data: updatedBoardOccupied };
@@ -85,7 +93,28 @@ const updateBoardWithUserEntry = (req, res, next) => {
   next();
 };
 
+async function checkUserImageSupport(req, res, next) {
+  const id = parseInt(req.params.id);
+  const { file } = req.body;
+  const filePath = id + "/" + file;
+
+  // get image from s3 and convert to byte stream
+  const imageFromS3 = await getImage(filePath);
+
+  // try to get sharp metadata - if error, return
+  try {
+    await sharp(imageFromS3).metadata();
+  } catch (err) {
+    console.log("[ERROR] sharp image compatibility err");
+    deleteImage(filePath);
+    return next(err);
+  }
+
+  next();
+}
+
 module.exports = {
   createValidBoard,
   updateBoardWithUserEntry,
+  checkUserImageSupport,
 };

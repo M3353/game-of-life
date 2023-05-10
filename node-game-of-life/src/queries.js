@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require("uuid");
 const prisma = require("./prisma");
 const { removeBackground, uploadUserImage } = require("./background-tasks");
 const { emptyS3Directory } = require("./s3-client");
+const { prevBoardMap, prevOccupiedMap } = require("./cache");
 
 require("dotenv").config();
 
@@ -101,8 +102,9 @@ async function getBoardById(req, res) {
 async function updateBoard(req, res, next) {
   const id = parseInt(req.params.id);
   const { board, occupied, ready, file, palette } = req.body;
+
   try {
-    const updatedBoard = await prisma.board.update({
+    await prisma.board.update({
       where: { id },
       data: {
         board: board,
@@ -111,18 +113,42 @@ async function updateBoard(req, res, next) {
       },
     });
 
+    // pop old board and update cache.
+    const prevBoard = prevBoardMap.get(id);
+    const prevOccupied = prevOccupiedMap.get(id);
+
+    prevBoardMap.set(id, board.data);
+    prevOccupiedMap.set(id, occupied.data);
+
     const jobId = uuidv4();
+
+    // background processes
     Promise.all([
       removeBackground(id, file),
       uploadUserImage(id, file, palette),
-    ]).then((values) => {
-      jobs[jobId] = values;
-    });
+    ])
+      .catch((err) => {
+        console.log("[ERROR] error with image processing");
+        prevBoardMap.set(id, prevBoard);
+        prevOccupiedMap.set(id, prevOccupied);
+        prisma.board
+          .update({
+            where: { id },
+            data: {
+              board: { data: prevBoard },
+              occupied: { data: prevOccupied },
+              ready: false,
+            },
+          })
+          .then(() => console.log("[INFO] reversed board"));
+      })
+      .then((values) => {
+        jobs[jobId] = values;
+      });
 
     res.redirect(303, `/image/${jobId}`);
-    next();
-  } catch (e) {
-    throw e;
+  } catch (err) {
+    throw err;
   }
 }
 
