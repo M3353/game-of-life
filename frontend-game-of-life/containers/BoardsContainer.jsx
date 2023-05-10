@@ -44,19 +44,29 @@ const BoardsContainer = (props) => {
     }
   }, [ws.data]);
 
+  const galleryViewStyle = {
+    display: "flex",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    minHeight: "100vh",
+  };
+
+  const webStyle = {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+  };
+
   return (
-    <Box sx={{ display: "flex", flexDirection: "column" }}>
-      {data.map(
-        (entry, i) =>
-          entry.ready && (
-            <Box
-              sx={{ display: "flex", flexDirection: "column", m: 1 }}
-              key={i}
-            >
-              <BoardGraphics data={entry} imageUrls={imageUrls} id={entry.id} />
-            </Box>
-          )
-      )}
+    <Box>
+      <Box sx={galleryView ? galleryViewStyle : webStyle}>
+        {data.map((entry, i) => (
+          <Box sx={{ mt: 5, mb: 5, mr: 0.5, ml: 0.5 }} key={i}>
+            <BoardGraphics data={entry} imageUrls={imageUrls} id={entry.id} />
+          </Box>
+        ))}
+      </Box>
       <IconButton
         sx={{ width: "1em", position: "sticky", bottom: 0 }}
         onClick={() => setGalleryView(!galleryView)}

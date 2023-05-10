@@ -176,21 +176,26 @@ const GameOfLifeImages = (props) => {
 function Cell(props) {
   const { x, y, val, maxFrom, minFrom, palette, xDim, yDim } = props;
 
+  const color =
+    typeof palette === "string"
+      ? palette
+      : toColor(val, maxFrom, minFrom, palette);
+
   const draw = useCallback(
     (g) => {
       g.clear();
-      g.beginFill(toColor(val, maxFrom, minFrom, palette));
+      g.beginFill(color);
       g.drawRect(xDim * x, yDim * y, xDim, yDim);
       g.endFill();
     },
-    [props]
+    [props, color]
   );
 
   return <Graphics draw={draw} />;
 }
 
 const GameOfLifeGrid = (props) => {
-  const { data, xDim, yDim } = props;
+  const { data, xDim, yDim, defaultColor } = props;
   const { columns, board, palette } = data;
 
   const [mounted, setMounted] = useState(false);
@@ -213,13 +218,20 @@ const GameOfLifeGrid = (props) => {
         board.data.map((ele, i) => {
           if (ele > maxVal) setMaxVal(ele);
           if (ele < minVal) setMinVal(ele);
+
+          const idx =
+            Math.floor(i / columns) % 2 == 0
+              ? i % palette.data.length
+              : palette.data.length - (i % palette.data.length) - 1;
+          const color =
+            palette.data.length > 0 ? palette.data[idx].color : defaultColor;
           return (
             <Cell
               key={i}
               x={i % columns}
               y={parseInt(i / columns)}
               val={ele}
-              palette={palette.data[i % palette.data.length].color}
+              palette={color}
               maxFrom={maxVal}
               minFrom={minVal}
               xDim={xDim}

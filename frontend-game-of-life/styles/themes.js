@@ -4,7 +4,7 @@ import { highlight, primary, background, disabled } from "./colors";
 
 const josefinSans = Josefin_Sans({
   subsets: ["latin", "latin-ext", "vietnamese"],
-  weight: ["300", "400", "500"],
+  weight: ["400", "500", "600"],
   display: "swap",
   fallback: ["Helvetica", "Arial", "sans-serif"],
 });
@@ -40,7 +40,7 @@ const GameOfLifeTheme = createTheme({
   typography: {
     root: {
       fontFamily: josefinSans.style.fontFamily,
-      fontWeight: 400,
+      fontWeight: 500,
     },
     h3: {
       fontFamily: playfairDisplay.style.fontFamily,
@@ -48,15 +48,15 @@ const GameOfLifeTheme = createTheme({
     },
     h6: {
       fontFamily: josefinSans.style.fontFamily,
-      fontWeight: 500,
+      fontWeight: 600,
     },
     body1: {
       fontFamily: josefinSans.style.fontFamily,
-      fontWeight: 300,
+      fontWeight: 400,
     },
     body2: {
       fontFamily: josefinSans.style.fontFamily,
-      fontWeight: 300,
+      fontWeight: 400,
     },
   },
 });
