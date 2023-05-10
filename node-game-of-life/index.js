@@ -66,7 +66,7 @@ app.post("/admin", queries.incrementBoard);
 app.post("/admin/:id", createValidBoard, queries.createBoard);
 app.delete("/admin/:id", queries.deleteBoard);
 
-app.get("/image/:jobId", queries.processImage);
+app.get("/image/:jobId", queries.getProcessedImageResults);
 
 const server = app.listen(port, () => {
   console.log(`App running on port ${port}.`);

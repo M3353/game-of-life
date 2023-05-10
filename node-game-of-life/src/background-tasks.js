@@ -126,7 +126,11 @@ async function uploadUserImage(id, file, palette) {
   }
 }
 
+async function processImage(id, file, palette) {
+  await removeBackground(id, file);
+  await uploadUserImage(id, file, palette);
+}
+
 module.exports = {
-  removeBackground,
-  uploadUserImage,
+  processImage,
 };

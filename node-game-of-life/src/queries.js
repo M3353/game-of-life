@@ -1,10 +1,9 @@
 const { v4: uuidv4 } = require("uuid");
 
 const prisma = require("./prisma");
-const { removeBackground, uploadUserImage } = require("./background-tasks");
+const { processImage } = require("./background-tasks");
 const { emptyS3Directory } = require("./s3-client");
 const { prevBoardMap, prevOccupiedMap } = require("./cache");
-const { map } = require("..");
 
 require("dotenv").config();
 
@@ -126,10 +125,7 @@ async function updateBoard(req, res, next) {
     const jobId = uuidv4();
 
     // fail safe - very slow so hopefully never reaches here
-    Promise.all([
-      removeBackground(id, file),
-      uploadUserImage(id, file, palette),
-    ])
+    Promise.all([processImage(id, file, palette)])
       .catch((err) => {
         console.log("[ERROR] error with image processing");
         prevBoardMap.set(id, prevBoard);
@@ -155,7 +151,7 @@ async function updateBoard(req, res, next) {
   }
 }
 
-async function processImage(req, res) {
+async function getProcessedImageResults(req, res) {
   if (jobs[req.params.jobId] === undefined) {
     console.log("processing request");
     res.status(200).send("Still processing your request.");
@@ -173,5 +169,5 @@ module.exports = {
   getBoards,
   getBoardById,
   updateBoard,
-  processImage,
+  getProcessedImageResults,
 };
