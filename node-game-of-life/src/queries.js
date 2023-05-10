@@ -4,6 +4,7 @@ const prisma = require("./prisma");
 const { removeBackground, uploadUserImage } = require("./background-tasks");
 const { emptyS3Directory } = require("./s3-client");
 const { prevBoardMap, prevOccupiedMap } = require("./cache");
+const { map } = require("..");
 
 require("dotenv").config();
 
@@ -51,6 +52,8 @@ async function deleteBoard(req, res) {
     });
     res.status(200).send(`Board deleted with ID: ${id}`);
     res.on("finish", () => {
+      prevBoardMap.delete(id);
+      prevOccupiedMap.delete(id);
       emptyS3Directory(id);
     });
   } catch (e) {
@@ -122,7 +125,7 @@ async function updateBoard(req, res, next) {
 
     const jobId = uuidv4();
 
-    // background processes
+    // fail safe - very slow so hopefully never reaches here
     Promise.all([
       removeBackground(id, file),
       uploadUserImage(id, file, palette),
