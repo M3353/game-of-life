@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box } from "@mui/system";
+import { Box, Container } from "@mui/material";
 import { Typography, IconButton } from "@mui/material";
 import CollectionsIcon from "@mui/icons-material/Collections";
 
@@ -46,8 +46,6 @@ const BoardsContainer = (props) => {
 
   const galleryViewStyle = {
     display: "flex",
-    flexDirection: "row",
-    flexWrap: "wrap",
     minHeight: "100vh",
   };
 
@@ -62,7 +60,14 @@ const BoardsContainer = (props) => {
     <Box>
       <Box sx={galleryView ? galleryViewStyle : webStyle}>
         {data.map((entry, i) => (
-          <Box sx={{ mt: 5, mb: 5, mr: 0.5, ml: 0.5 }} key={i}>
+          <Box
+            sx={{
+              mt: 5,
+              mb: 5,
+              flexBasis: `${(1 / data.length) * 100}%`,
+            }}
+            key={i}
+          >
             <BoardGraphics data={entry} imageUrls={imageUrls} id={entry.id} />
           </Box>
         ))}

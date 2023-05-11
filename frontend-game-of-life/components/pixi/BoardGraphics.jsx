@@ -25,13 +25,14 @@ const BoardGraphics = (props) => {
 
   width = width > height ? (columns / rows) * height : width;
   height = height > width ? (rows / columns) * width : height;
-  width *= 0.85;
-  height *= 0.85;
+  width *= 0.78;
+  height *= 0.78;
   const xDim = width / columns;
   const yDim = height / rows;
 
   const draw = useCallback(
     (g) => {
+      console.log("reached here");
       g.clear();
       g.lineStyle(6, primary, 1);
       g.drawRect(0, 0, width, height);
@@ -41,7 +42,7 @@ const BoardGraphics = (props) => {
 
   return (
     <Container>
-      {mounted && imageUrls.size > 0 && (
+      {mounted && (
         <Stage width={width} height={height} options={{ backgroundAlpha: 0 }}>
           <GameOfLifeGrid
             data={data}
@@ -49,20 +50,26 @@ const BoardGraphics = (props) => {
             yDim={yDim}
             defaultColor={background}
           />
-          {data.ready && (
-            <>
-              <GameOfLifeImages
-                id={id}
-                data={data}
-                imageUrls={imageUrls}
-                xDim={xDim}
-                yDim={yDim}
-              />
-              <GameOfLifeSquares data={data} xDim={xDim} yDim={yDim} />
-              <GameOfLifeCircles data={data} xDim={xDim} yDim={yDim} />
-              <GameOfLifeTruncatedCircles data={data} xDim={xDim} yDim={yDim} />
-            </>
-          )}
+          {data.ready &&
+            imageUrls.size >
+              0(
+                <>
+                  <GameOfLifeImages
+                    id={id}
+                    data={data}
+                    imageUrls={imageUrls}
+                    xDim={xDim}
+                    yDim={yDim}
+                  />
+                  <GameOfLifeSquares data={data} xDim={xDim} yDim={yDim} />
+                  <GameOfLifeCircles data={data} xDim={xDim} yDim={yDim} />
+                  <GameOfLifeTruncatedCircles
+                    data={data}
+                    xDim={xDim}
+                    yDim={yDim}
+                  />
+                </>
+              )}
           <Graphics draw={draw} />
         </Stage>
       )}
