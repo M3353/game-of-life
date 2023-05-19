@@ -29,6 +29,7 @@ def image_to_s3(output):
 
 if __name__ == "__main__":
     input_img = image_from_s3()
+    output_img = None
     try:
         output_img = remove(input_img)
     except:
@@ -37,3 +38,4 @@ if __name__ == "__main__":
         image_to_s3(output_img)
     finally:
         input_img.close()
+        output_img.close()

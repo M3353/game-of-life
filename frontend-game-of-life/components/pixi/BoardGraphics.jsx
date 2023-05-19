@@ -32,7 +32,6 @@ const BoardGraphics = (props) => {
 
   const draw = useCallback(
     (g) => {
-      console.log("reached here");
       g.clear();
       g.lineStyle(6, primary, 1);
       g.drawRect(0, 0, width, height);
@@ -50,26 +49,20 @@ const BoardGraphics = (props) => {
             yDim={yDim}
             defaultColor={background}
           />
-          {data.ready &&
-            imageUrls.size >
-              0(
-                <>
-                  <GameOfLifeImages
-                    id={id}
-                    data={data}
-                    imageUrls={imageUrls}
-                    xDim={xDim}
-                    yDim={yDim}
-                  />
-                  <GameOfLifeSquares data={data} xDim={xDim} yDim={yDim} />
-                  <GameOfLifeCircles data={data} xDim={xDim} yDim={yDim} />
-                  <GameOfLifeTruncatedCircles
-                    data={data}
-                    xDim={xDim}
-                    yDim={yDim}
-                  />
-                </>
-              )}
+          {data.ready && imageUrls.size > 0 && (
+            <>
+              <GameOfLifeImages
+                id={id}
+                data={data}
+                imageUrls={imageUrls}
+                xDim={xDim}
+                yDim={yDim}
+              />
+              <GameOfLifeSquares data={data} xDim={xDim} yDim={yDim} />
+              <GameOfLifeCircles data={data} xDim={xDim} yDim={yDim} />
+              <GameOfLifeTruncatedCircles data={data} xDim={xDim} yDim={yDim} />
+            </>
+          )}
           <Graphics draw={draw} />
         </Stage>
       )}
